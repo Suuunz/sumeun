@@ -199,6 +199,14 @@ body {
     fill: var(--accent-soft);
     cursor: pointer;
 }
+.sig-path:focus {
+    outline: none;
+}
+.sig-path:focus-visible {
+    fill: var(--accent-soft);
+    outline: 2px solid var(--accent);
+    outline-offset: -1px;
+}
 .sig-path.selected {
     fill: var(--accent);
 }

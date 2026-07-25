@@ -135,6 +135,60 @@
 .region-panel.open {
     display: flex;
     flex-direction: column;
+    animation: slideInRight 0.35s ease-out;
+}
+
+/* 반응형: 좁은 화면에서는 하단 시트로 (지도 위에 겹쳐 위로 슬라이드) */
+@media (max-width: 767px) {
+    .region-panel {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        top: auto;
+        width: 100% !important;
+        height: 72%;
+        border-left: none;
+        border-top: 1px solid var(--border);
+        border-radius: 16px 16px 0 0;
+        box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.08);
+        z-index: 30;
+    }
+    .region-panel.open {
+        animation: slideUp 0.35s ease-out;
+    }
+}
+@keyframes slideUp {
+    from { transform: translateY(100%); opacity: 0; }
+    to   { transform: translateY(0); opacity: 1; }
+}
+
+/* ----- 지도 로딩 스켈레톤 ----- */
+.map-skeleton {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-1);
+    flex-direction: column;
+    background: var(--surface-alt);
+    color: var(--text-muted);
+    font-size: var(--fs-caption);
+    animation: skeletonPulse 1.4s ease-in-out infinite;
+    z-index: 20;
+}
+.map-skeleton__dot {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    animation: spin 0.9s linear infinite;
+}
+@keyframes skeletonPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.55; }
 }
 
 /* ----- 코스 저장 완료: 체크 그리기 & 페이드업 ----- */
