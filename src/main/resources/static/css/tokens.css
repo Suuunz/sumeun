@@ -19,6 +19,10 @@
     --sage-border: #C6E8C9;
     --error: #BA1A1A;
 
+    /* 소셜 로그인 브랜드 색 (팔레트 외 · 브랜드 식별용) */
+    --brand-kakao: #FEE500;
+    --brand-google: #4285F4;
+
     /* ----- Typography ----- */
     --font-sans: 'Pretendard', sans-serif;
     --font-serif: 'Gowun Batang', serif;
@@ -162,16 +166,18 @@ body {
     transition: background var(--transition), color var(--transition);
 }
 
-/* --- Sage badge --- */
+/* --- Sage badge (착한가격업소 공통 배지) --- */
 .badge-sage {
     display: inline-flex;
     align-items: center;
-    padding: 4px 12px;
-    background: color-mix(in srgb, var(--sage) 16%, transparent);
+    padding: 2px 8px;
+    background: var(--sage-bg);
     color: var(--sage);
+    border: 1px solid var(--sage-border);
     font-size: var(--fs-caption);
     font-weight: 600;
-    border-radius: var(--radius-chip);
+    border-radius: var(--radius-btn);
+    white-space: nowrap;
 }
 
 /* --- Card --- */

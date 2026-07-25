@@ -80,7 +80,7 @@
                     <div class="flex items-center gap-2 mb-1 flex-wrap">
                         <h3 class="font-card-title text-card-title text-text-primary">일직식당</h3>
                         <span class="bg-surface-alt text-text-muted font-caption text-caption px-2 py-0.5 rounded">식당</span>
-                        <span class="bg-sage-bg text-sage font-caption text-caption px-2 py-0.5 rounded border border-[color:var(--sage-border)]">착한가격업소</span>
+                        <span class="badge-sage">착한가격업소</span>
                     </div>
                     <p class="font-caption text-caption text-text-muted truncate">가성비 좋은 안동 간고등어 백반</p>
                 </div>
@@ -141,7 +141,7 @@
                                 <div class="flex items-center gap-2 flex-wrap">
                                     <span class="font-semibold text-text-primary text-[16px]" th:text="${stop.name}">장소</span>
                                     <span class="bg-surface-alt text-text-muted font-caption text-caption px-2 py-0.5 rounded text-[11px]" th:text="${stop.type}">유형</span>
-                                    <span th:if="${stop.goodPrice}" class="bg-sage-bg text-sage font-caption text-caption px-2 py-0.5 rounded text-[11px] border border-[color:var(--sage-border)]">착한가격업소</span>
+                                    <span th:if="${stop.goodPrice}" class="badge-sage">착한가격업소</span>
                                 </div>
                                 <span class="font-caption text-caption text-text-muted mt-1 flex items-center gap-1">
                                     <span class="material-symbols-outlined text-[14px]">schedule</span> <span th:text="${stop.arriveTime} + ' 도착 예정'">10:00 도착 예정</span>
