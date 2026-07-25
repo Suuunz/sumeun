@@ -127,6 +127,16 @@
 /* ----- 코스 편집기: 드래그 핸들 ----- */
 .drag-handle:active { cursor: grabbing !important; }
 
+/* ----- 지도 우측 지역 패널 (기본 숨김 → 선택 시 슬라이드 인) ----- */
+.region-panel {
+    display: none;
+    box-shadow: -10px 0 30px rgba(0, 0, 0, 0.03);
+}
+.region-panel.open {
+    display: flex;
+    flex-direction: column;
+}
+
 /* ----- 코스 저장 완료: 체크 그리기 & 페이드업 ----- */
 @keyframes drawCheck {
     0%   { stroke-dashoffset: 100; opacity: 0; }

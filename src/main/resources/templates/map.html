@@ -3,41 +3,105 @@
 <head th:replace="~{fragments/layout :: head('Sumeun · 지역 탐색')}"></head>
 <body class="bg-background text-text-primary min-h-screen flex flex-col font-body-main antialiased selection:bg-accent-soft selection:text-primary">
 
-<!-- 공통 상단 네비게이션 (지침 6: Stitch 네비 삭제 후 프래그먼트로 교체) -->
+<!-- 공통 상단 네비게이션 -->
 <header th:replace="~{fragments/layout :: header}"></header>
 
-<!-- Main Content Canvas (Map Area) -->
-<main class="flex-1 relative bg-background">
-    <!-- 지도 영역 자리표시자 (이후 GeoJSON SVG 지도로 교체 · id 유지) -->
-    <div id="map-placeholder"
-         class="absolute inset-0 m-4 md:m-section-gap bg-surface-alt border border-border rounded-xl overflow-hidden">
-        <!-- 시군구 SVG 지도 (map.js가 sig.json을 fetch해 path 채움) -->
-        <svg id="korea-map" class="korea-map" viewBox="0 0 800 1000"
-             preserveAspectRatio="xMidYMid meet" role="img" aria-label="대한민국 시군구 지도"></svg>
+<!-- Main: 지도(좌) + 지역 패널(우) -->
+<main class="flex-1 relative bg-background overflow-hidden">
+    <div id="map-main" class="absolute inset-0 flex">
 
-        <!-- 지도 위에 겹치는 UI (지침: 살린다) -->
-        <!-- 안내 텍스트: 좌상단 -->
-        <div class="absolute top-card-padding left-card-padding bg-surface/90 backdrop-blur-sm border border-border rounded-lg px-4 py-2 flex items-center gap-2">
-            <span class="material-symbols-outlined text-primary text-sm">touch_app</span>
-            <span class="font-caption text-caption text-text-primary">지역을 눌러보세요</span>
-        </div>
+        <!-- ===== 지도 캔버스 ===== -->
+        <section class="relative flex-1 min-w-0">
+            <div id="map-placeholder"
+                 class="absolute inset-0 m-4 md:m-section-gap bg-surface-alt border border-border rounded-xl overflow-hidden">
+                <!-- 시군구 SVG 지도 -->
+                <svg id="korea-map" class="korea-map" viewBox="0 0 800 1000"
+                     preserveAspectRatio="xMidYMid meet" role="img" aria-label="대한민국 시군구 지도"></svg>
 
-        <!-- 지역 빠른 이동 칩 (검색 드롭다운 대체 · regionNames 바인딩 → /region/panel) -->
-        <div class="absolute top-card-padding right-card-padding bg-surface/90 backdrop-blur-sm border border-border rounded-lg p-3 flex flex-col gap-2 w-48">
-            <span class="font-caption text-caption text-text-muted px-1">이런 곳은 어때요?</span>
-            <a th:each="name : ${regionNames}" th:href="@{/region/panel}"
-               class="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-accent-soft transition-colors font-body-main text-body-main text-text-primary">
-                <span class="material-symbols-outlined text-text-muted text-sm">location_on</span>
-                <span th:text="${name}">지역명</span>
-            </a>
-        </div>
+                <!-- 안내 텍스트: 좌상단 -->
+                <div class="absolute top-card-padding left-card-padding bg-surface/90 backdrop-blur-sm border border-border rounded-lg px-4 py-2 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary text-sm">touch_app</span>
+                    <span class="font-caption text-caption text-text-primary">지역을 눌러보세요</span>
+                </div>
 
-        <!-- 무작위로 한 곳 보기: 우하단 → /region/panel -->
-        <a th:href="@{/region/panel}"
-           class="absolute bottom-card-padding right-card-padding bg-surface border border-border rounded-lg px-6 h-[44px] flex items-center gap-2 hover:bg-surface-alt transition-colors font-body-main text-body-main text-text-primary shadow-sm">
-            <span class="material-symbols-outlined text-primary">shuffle</span>
-            무작위로 한 곳 보기
-        </a>
+                <!-- 지역 검색 자동완성: 우상단 -->
+                <div class="absolute top-card-padding right-card-padding w-64" id="region-search">
+                    <div class="relative">
+                        <span class="material-symbols-outlined absolute left-2 top-1/2 -translate-y-1/2 text-text-muted text-sm pointer-events-none">search</span>
+                        <input id="region-search-input" type="text" autocomplete="off" placeholder="지역 검색"
+                               class="w-full bg-surface/95 backdrop-blur-sm border border-border rounded-lg py-2 pl-9 pr-3 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors text-body-main font-body-main placeholder:text-text-muted"/>
+                        <ul id="region-search-list"
+                            class="hidden absolute top-full left-0 w-full mt-2 bg-surface border border-border rounded-lg overflow-hidden max-h-64 overflow-y-auto z-10">
+                            <li th:each="opt : ${regionOptions}"
+                                th:attr="data-sig-cd=${opt.sigCd},data-name=${opt.name}"
+                                class="region-opt px-3 py-2 hover:bg-accent-soft cursor-pointer text-body-main font-body-main text-text-primary flex items-center gap-2 transition-colors">
+                                <span class="material-symbols-outlined text-text-muted text-sm">location_on</span>
+                                <span th:text="${opt.name}">지역명</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- 무작위로 한 곳 보기: 우하단 -->
+                <button type="button" id="map-shuffle"
+                        class="absolute bottom-card-padding right-card-padding bg-surface border border-border rounded-lg px-6 h-[44px] flex items-center gap-2 hover:bg-surface-alt transition-colors font-body-main text-body-main text-text-primary shadow-sm">
+                    <span class="material-symbols-outlined text-primary">shuffle</span>
+                    무작위로 한 곳 보기
+                </button>
+            </div>
+        </section>
+
+        <!-- ===== 지역 패널(기본 숨김, 지역 선택 시 슬라이드 인) ===== -->
+        <aside id="region-panel" class="region-panel md:w-[440px] w-full h-full bg-surface border-l border-border">
+            <!-- Header -->
+            <div class="flex justify-between items-start p-card-padding border-b border-border bg-surface shrink-0">
+                <div>
+                    <h1 id="panel-name" class="font-display-title text-display-title text-primary mb-1">지역명</h1>
+                    <p id="panel-province" class="font-body-main text-caption text-text-muted">시도</p>
+                </div>
+                <button id="panel-close" type="button" aria-label="닫기"
+                        class="text-text-muted hover:text-primary transition-colors p-2 rounded-full hover:bg-surface-alt">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+
+            <!-- Scrollable body -->
+            <div id="panel-body" class="flex-1 overflow-y-auto p-card-padding bg-surface stagger-fade-in">
+                <!-- AI Summary -->
+                <div class="bg-accent-soft p-6 rounded border border-border mb-section-gap">
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="material-symbols-outlined text-primary text-sm">psychology</span>
+                        <span class="font-section-title text-card-title text-primary">AI 요약</span>
+                    </div>
+                    <p id="panel-ai" class="font-body-main text-body-main text-text-primary leading-relaxed"></p>
+                </div>
+                <!-- Specialties -->
+                <div id="panel-specialties-wrap" class="mb-section-gap">
+                    <h3 class="font-section-title text-card-title text-primary mb-4">지역 특산물</h3>
+                    <div id="panel-specialties" class="flex flex-wrap gap-2"></div>
+                </div>
+                <!-- Good price shops -->
+                <div id="panel-shops-wrap" class="mb-section-gap">
+                    <h3 class="font-section-title text-card-title text-primary mb-4">착한가격업소 추천</h3>
+                    <div id="panel-shops" class="flex flex-col gap-4"></div>
+                    <p class="text-right font-body-main text-xs text-text-muted mt-2">출처: 행정안전부 착한가격업소</p>
+                </div>
+                <!-- Brief course -->
+                <div id="panel-course-wrap" class="mb-4">
+                    <h3 class="font-section-title text-card-title text-primary mb-6">추천 반일 코스</h3>
+                    <div id="panel-course" class="relative pl-6"></div>
+                </div>
+            </div>
+
+            <!-- Bottom action -->
+            <div class="p-4 bg-surface border-t border-border shrink-0">
+                <a id="panel-go" href="#"
+                   class="w-full h-[52px] bg-primary-container hover:bg-accent-hover text-on-primary font-section-title text-card-title rounded flex items-center justify-center gap-2 transition-all duration-300 hover:-translate-y-0.5">
+                    <span class="material-symbols-outlined" style="font-variation-settings: 'wght' 200;">explore</span>
+                    이 지역으로 여행가기
+                </a>
+            </div>
+        </aside>
     </div>
 </main>
 
