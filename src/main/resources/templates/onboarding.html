@@ -1,15 +1,66 @@
 <!DOCTYPE html>
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/layout :: head('숨은여행 · onboarding')}"></head>
-<body>
-<header th:replace="~{fragments/layout :: header}"></header>
-
-<main style="max-width: var(--max-w); margin: 0 auto; padding: var(--space-4) var(--space-3);">
-    <span class="chip">퍼블리싱 준비 중</span>
-    <h1 style="font-family: var(--font-serif); font-size: var(--fs-page); margin-top: var(--space-2);">onboarding</h1>
-    <p style="color: var(--text-muted); margin-top: var(--space-1);">이 화면은 다음 단계에서 구현됩니다.</p>
+<head th:replace="~{fragments/layout :: head('Sumeun · 온보딩')}"></head>
+<body class="bg-background text-text-primary min-h-screen flex flex-col items-center justify-center font-body-main text-body-main p-4 md:p-section-gap antialiased">
+<main class="w-full max-w-[640px] mx-auto flex flex-col bg-background">
+    <!-- Progress Bar -->
+    <div aria-label="Progress" class="w-full flex gap-2 mb-12">
+        <div class="h-1 flex-1 bg-primary-container rounded-full transition-colors duration-300" id="progress-1"></div>
+        <div class="h-1 flex-1 bg-border rounded-full transition-colors duration-300" id="progress-2"></div>
+    </div>
+    <!-- Forms Container -->
+    <div class="relative w-full min-h-[400px]">
+        <!-- Step 1 -->
+        <div class="step-container step-visible w-full flex flex-col gap-8" id="step-1">
+            <h1 class="font-display-title-mobile text-display-title-mobile md:font-display-title md:text-display-title text-center text-text-primary">어떤 여행지가 좋으세요?</h1>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <button class="option-card rounded-xl p-card-padding flex flex-col items-start text-left focus:outline-none focus:ring-2 focus:ring-primary-container" onclick="selectCard(1, this)">
+                    <span class="material-symbols-outlined text-[32px] text-primary mb-4">public</span>
+                    <div class="absolute top-4 right-4 check-icon">
+                        <span class="material-symbols-outlined font-bold" style="font-variation-settings: 'wght' 600;">check_circle</span>
+                    </div>
+                    <h2 class="font-card-title text-card-title text-text-primary mb-2">이름난 곳이 좋아요</h2>
+                    <p class="font-caption text-caption text-text-muted">검증된 관광지 위주로 추천</p>
+                </button>
+                <button class="option-card rounded-xl p-card-padding flex flex-col items-start text-left focus:outline-none focus:ring-2 focus:ring-primary-container" onclick="selectCard(1, this)">
+                    <span class="material-symbols-outlined text-[32px] text-primary mb-4">explore</span>
+                    <div class="absolute top-4 right-4 check-icon">
+                        <span class="material-symbols-outlined font-bold" style="font-variation-settings: 'wght' 600;">check_circle</span>
+                    </div>
+                    <h2 class="font-card-title text-card-title text-text-primary mb-2">잘 안 알려진 곳이 좋아요</h2>
+                    <p class="font-caption text-caption text-text-muted">사람 적고 새로운 곳 위주로 추천</p>
+                </button>
+            </div>
+        </div>
+        <!-- Step 2 -->
+        <div class="step-container step-hidden w-full flex flex-col gap-8" id="step-2">
+            <h1 class="font-display-title-mobile text-display-title-mobile md:font-display-title md:text-display-title text-center text-text-primary">여행지 분위기는요?</h1>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <button class="option-card rounded-xl p-card-padding flex flex-col items-start text-left focus:outline-none focus:ring-2 focus:ring-primary-container" onclick="selectCard(2, this)">
+                    <span class="material-symbols-outlined text-[32px] text-primary mb-4">celebration</span>
+                    <div class="absolute top-4 right-4 check-icon">
+                        <span class="material-symbols-outlined font-bold" style="font-variation-settings: 'wght' 600;">check_circle</span>
+                    </div>
+                    <h2 class="font-card-title text-card-title text-text-primary mb-2">북적이는 곳</h2>
+                    <p class="font-caption text-caption text-text-muted">축제, 시장, 활기 있는 거리</p>
+                </button>
+                <button class="option-card rounded-xl p-card-padding flex flex-col items-start text-left focus:outline-none focus:ring-2 focus:ring-primary-container" onclick="selectCard(2, this)">
+                    <span class="material-symbols-outlined text-[32px] text-primary mb-4">nature</span>
+                    <div class="absolute top-4 right-4 check-icon">
+                        <span class="material-symbols-outlined font-bold" style="font-variation-settings: 'wght' 600;">check_circle</span>
+                    </div>
+                    <h2 class="font-card-title text-card-title text-text-primary mb-2">잔잔한 곳</h2>
+                    <p class="font-caption text-caption text-text-muted">조용한 자연, 한적한 골목</p>
+                </button>
+            </div>
+        </div>
+    </div>
+    <!-- Footer Actions: 건너뛰기 / 시작하기 → /map -->
+    <div class="w-full flex justify-between items-center mt-12 pt-8 border-t border-border">
+        <button class="font-body-main text-body-main text-text-muted hover:text-text-primary transition-colors focus:outline-none focus:underline" onclick="skip()">건너뛰기</button>
+        <button class="h-[44px] px-8 bg-primary-container text-white font-card-title text-card-title rounded flex items-center justify-center transition-all duration-300 hover:bg-accent-hover hover:-translate-y-[2px] disabled:opacity-50 disabled:hover:translate-y-0 disabled:cursor-not-allowed" disabled id="next-btn" onclick="nextStep()">다음</button>
+    </div>
 </main>
-
-<footer th:replace="~{fragments/layout :: footer}"></footer>
+<script th:src="@{/js/onboarding.js}"></script>
 </body>
 </html>

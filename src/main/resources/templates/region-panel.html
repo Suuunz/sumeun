@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html class="h-full" lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Sumeun · 지역 상세')}"></head>
+<body class="bg-background h-full font-body-main text-body-main text-text-primary antialiased overflow-hidden">
+<!-- 지도 + 우측 슬라이드 패널 레이아웃 (전용 상단 바 유지: 지도 컨텍스트 화면) -->
+<nav class="fixed top-0 w-full z-50 bg-background/95 backdrop-blur-sm px-4 md:px-section-gap max-w-container-max mx-auto flex justify-between items-center h-16 border-b border-border">
+    <a th:href="@{/map}" class="font-display-title text-display-title-mobile text-primary flex items-center">Sumeun</a>
+    <div class="flex items-center">
+        <a th:href="@{/map}" class="text-primary cursor-pointer hover:text-accent-hover transition-colors duration-300 flex items-center">
+            <span class="material-symbols-outlined">map</span>
+        </a>
+    </div>
+</nav>
+
+<!-- Main Layout -->
+<div class="flex h-full pt-16">
+    <!-- Left Side: Map Area (50%) -->
+    <div class="hidden md:flex w-1/2 h-full bg-surface-alt items-center justify-center relative overflow-hidden">
+        <!-- 지도 자리표시자 (id: map-panel) -->
+        <div id="map-panel" class="w-full h-full border border-border bg-surface-alt flex flex-col items-center justify-center">
+            <span class="material-symbols-outlined text-4xl text-text-muted mb-2">map</span>
+            <p class="text-text-muted font-body-main text-body-main">지도 영역 (선택된 지역 표시)</p>
+        </div>
+    </div>
+
+    <!-- Right Side: Info Panel (50%) -->
+    <div class="w-full md:w-1/2 h-full bg-surface border-l border-border flex flex-col relative z-10 slide-in-right shadow-[-10px_0_30px_rgba(0,0,0,0.03)] md:shadow-none">
+        <!-- Panel Header -->
+        <div class="flex justify-between items-start p-card-padding border-b border-border bg-surface z-20">
+            <div>
+                <h1 class="font-display-title text-display-title text-primary mb-1" th:text="${region.name}">안동시</h1>
+                <p class="font-body-main text-caption text-text-muted" th:text="${region.province}">경상북도</p>
+            </div>
+            <!-- 닫기 → 지도로 -->
+            <a th:href="@{/map}" class="text-text-muted hover:text-primary transition-colors p-2 rounded-full hover:bg-surface-alt">
+                <span class="material-symbols-outlined">close</span>
+            </a>
+        </div>
+
+        <!-- Scrollable Content -->
+        <div class="flex-1 overflow-y-auto p-card-padding pb-32 stagger-fade-in bg-background md:bg-surface">
+            <!-- AI Summary -->
+            <div class="bg-accent-soft p-6 rounded border border-border mb-section-gap">
+                <div class="flex items-center gap-2 mb-3">
+                    <span class="material-symbols-outlined text-primary text-sm">psychology</span>
+                    <span class="font-section-title text-card-title text-primary">AI 요약</span>
+                </div>
+                <p class="font-body-main text-body-main text-text-primary leading-relaxed" th:text="${region.aiSummary}">AI 요약</p>
+            </div>
+
+            <!-- Specialties -->
+            <div class="mb-section-gap">
+                <h3 class="font-section-title text-card-title text-primary mb-4">지역 특산물</h3>
+                <div class="flex flex-wrap gap-2">
+                    <span th:each="item : ${region.specialties}"
+                          class="px-4 py-2 bg-surface-alt border border-border rounded font-body-main text-caption text-text-primary"
+                          th:text="${item}">특산물</span>
+                </div>
+            </div>
+
+            <!-- Good Price Restaurants (앞 3곳) -->
+            <div class="mb-section-gap relative">
+                <div class="flex justify-between items-end mb-4">
+                    <h3 class="font-section-title text-card-title text-primary">착한가격업소 추천</h3>
+                </div>
+                <div class="flex flex-col gap-4">
+                    <div th:each="shop, iter : ${region.shops}" th:if="${iter.index < 3}"
+                         class="p-4 bg-surface border border-border rounded group hover:-translate-y-0.5 hover:border-primary-container transition-all duration-300 cursor-pointer">
+                        <div class="flex justify-between items-start mb-2">
+                            <h4 class="font-section-title text-card-title text-text-primary group-hover:text-primary transition-colors" th:text="${shop.name}">업소명</h4>
+                            <span class="px-2 py-1 bg-sage-bg text-sage font-body-main text-xs rounded-full border border-[color:var(--sage-border)]">착한가격업소</span>
+                        </div>
+                        <div class="flex justify-between items-center mt-4">
+                            <span class="font-body-main text-caption text-text-muted" th:text="${shop.menu}">대표메뉴</span>
+                            <span class="font-section-title text-body-main text-primary" th:text="${shop.price}">가격</span>
+                        </div>
+                    </div>
+                </div>
+                <p class="text-right font-body-main text-xs text-text-muted mt-2">출처: 행정안전부 착한가격업소</p>
+            </div>
+
+            <!-- Recommended Course Timeline -->
+            <div class="mb-8">
+                <h3 class="font-section-title text-card-title text-primary mb-6">추천 반일 코스</h3>
+                <div class="relative pl-6">
+                    <div class="absolute left-[11px] top-2 bottom-6 w-[1px] border-l border-dotted border-outline-variant"></div>
+                    <div th:each="point : ${region.briefCourse}" class="relative mb-8 last:mb-0 group">
+                        <div class="absolute -left-6 top-0 w-6 h-6 rounded-full bg-surface border border-primary flex items-center justify-center z-10 font-section-title text-xs text-primary group-hover:bg-primary group-hover:text-on-primary transition-colors" th:text="${point.order}">1</div>
+                        <div class="flex items-center gap-2 mb-1">
+                            <h4 class="font-section-title text-card-title text-text-primary" th:text="${point.name}">장소</h4>
+                            <span class="text-[11px] bg-surface-alt px-2 py-0.5 rounded border border-border text-text-muted" th:text="${point.type}">유형</span>
+                        </div>
+                        <p class="font-body-main text-caption text-text-muted" th:text="${point.desc}">설명</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fixed Bottom Action: 이 지역으로 여행가기 → /region -->
+        <div class="absolute bottom-0 left-0 w-full p-4 bg-surface/90 backdrop-blur border-t border-border z-30">
+            <a th:href="@{/region}" class="w-full h-[52px] bg-primary-container hover:bg-accent-hover text-on-primary font-section-title text-card-title rounded flex items-center justify-center gap-2 transition-all duration-300 hover:-translate-y-0.5">
+                <span class="material-symbols-outlined" style="font-variation-settings: 'wght' 200;">explore</span>
+                이 지역으로 여행가기
+            </a>
+        </div>
+    </div>
+</div>
+</body>
+</html>

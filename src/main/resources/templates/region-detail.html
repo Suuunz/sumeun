@@ -1,15 +1,125 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/layout :: head('숨은여행 · region-detail')}"></head>
-<body>
+<html class="light" lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Sumeun · 안동시')}"></head>
+<body class="bg-background text-text-primary font-body-main antialiased min-h-screen">
+
+<!-- 공통 상단 네비게이션 (지침 6) -->
 <header th:replace="~{fragments/layout :: header}"></header>
 
-<main style="max-width: var(--max-w); margin: 0 auto; padding: var(--space-4) var(--space-3);">
-    <span class="chip">퍼블리싱 준비 중</span>
-    <h1 style="font-family: var(--font-serif); font-size: var(--fs-page); margin-top: var(--space-2);">region-detail</h1>
-    <p style="color: var(--text-muted); margin-top: var(--space-1);">이 화면은 다음 단계에서 구현됩니다.</p>
+<main class="pt-8 pb-section-gap px-4 md:px-section-gap max-w-container-max mx-auto">
+    <!-- 1) Top Bar: Back to Map -->
+    <div class="mb-8 fade-up">
+        <a th:href="@{/map}" class="inline-flex items-center text-text-muted hover:text-primary transition-colors font-display-title text-lg">
+            <span class="material-symbols-outlined mr-2">arrow_back</span>
+            지도로 돌아가기
+        </a>
+    </div>
+
+    <!-- 2) Hero Section -->
+    <section class="flex flex-col md:flex-row justify-between items-start gap-8 mb-section-gap fade-up">
+        <div class="flex-1">
+            <span class="font-caption text-caption text-text-muted block mb-2" th:text="${region.province}">경상북도</span>
+            <h1 class="font-display-title text-[48px] leading-tight text-text-primary mb-4" th:text="${region.name}">안동시</h1>
+            <p class="font-body-main text-body-main text-on-surface-variant max-w-2xl" th:text="${heroDesc}">지역 소개</p>
+        </div>
+        <!-- 지도 썸네일 자리표시자 (id: map-thumb) -->
+        <div id="map-thumb" class="w-full md:w-64 h-48 bg-surface-alt border border-border rounded flex items-center justify-center flex-shrink-0">
+            <span class="text-text-muted font-body-main text-body-main">지도 영역</span>
+        </div>
+    </section>
+
+    <!-- 3) Metrics Strip -->
+    <section class="bg-surface border border-border rounded flex flex-col md:flex-row mb-section-gap fade-up">
+        <div th:each="metric, iter : ${metrics}"
+             class="flex-1 p-card-padding flex flex-col items-center justify-center border-b md:border-b-0 border-border"
+             th:classappend="${!iter.last} ? 'md:border-r' : ''">
+            <span class="font-display-title text-display-title text-primary" th:text="${metric.value}">1.2M</span>
+            <span class="font-caption text-caption text-text-muted mt-2" th:text="${metric.label}">지표</span>
+        </div>
+    </section>
+
+    <!-- 4) "이 지역은 이런 곳이에요" Section (지역 서사 · 정적) -->
+    <section class="bg-surface border border-border rounded p-8 mb-section-gap fade-up">
+        <h2 class="font-section-title text-section-title mb-6 pb-4 border-b border-border">이 지역은 이런 곳이에요</h2>
+        <div class="space-y-6 text-[16px] leading-[1.8] text-on-surface-variant">
+            <p>안동은 한국의 정신문화의 수도라 불리며, 수백 년의 역사를 간직한 한옥과 서원들이 현대의 일상과 자연스럽게 어우러져 있는 매력적인 도시입니다. 복잡한 도심을 벗어나 느릿한 걸음으로 산책하듯 여행하기 좋은 곳으로, 계절마다 변하는 낙동강변의 풍경이 여행자들에게 깊은 평안을 선사합니다.</p>
+            <div>
+                <h3 class="font-card-title text-card-title text-text-primary mb-2 mt-4">유명한 것들</h3>
+                <p>안동탈춤페스티벌은 매년 가을 열리는 세계적인 축제로, 흥겨운 전통 리듬과 해학을 경험할 수 있습니다. 또한 안동포(삼베)는 예로부터 왕실에 진상품으로 올려질 만큼 그 품질과 정교함을 인정받아온 특산품입니다.</p>
+            </div>
+            <div>
+                <h3 class="font-card-title text-card-title text-text-primary mb-2 mt-4">대표적인 랜드마크</h3>
+                <p>유네스코 세계문화유산으로 지정된 '하회마을'은 굽이치는 낙동강에 둘러싸인 천혜의 지형을 자랑하며, 징비록의 산실인 '병산서원'은 한국 건축미의 정수를 보여줍니다. 밤이 되면 달빛이 비치는 '월영교'에서 로맨틱한 산책을 즐길 수 있습니다.</p>
+            </div>
+            <div>
+                <h3 class="font-card-title text-card-title text-text-primary mb-2 mt-4">먹거리</h3>
+                <p>짭조름한 간장 소스로 맛을 낸 '안동찜닭'과 제사상에 오르던 정갈한 나물 반찬을 비벼 먹는 '헛제사밥'은 안동을 방문했다면 반드시 맛보아야 할 별미입니다. 식사 후에는 깊은 풍미를 자랑하는 안동소주로 여행의 여운을 더해볼 수 있습니다.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- 5) "추천 코스" Section -->
+    <section class="mb-section-gap fade-up">
+        <h2 class="font-section-title text-section-title mb-6">추천 코스</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div th:each="course : ${recommendedCourses}"
+                 class="bg-surface border border-border rounded p-card-padding course-card-hover flex flex-col h-full">
+                <div class="flex justify-between items-start mb-4">
+                    <span class="bg-surface-alt text-text-primary font-caption text-caption px-2 py-1 rounded" th:text="${course.theme}">테마</span>
+                    <span class="text-text-muted font-caption text-caption flex items-center">
+                        <span class="material-symbols-outlined text-[16px] mr-1">schedule</span><span th:text="${course.duration}">소요</span>
+                    </span>
+                </div>
+                <h3 class="font-card-title text-card-title mb-6" th:text="${course.title}">코스명</h3>
+                <div class="flex-1 relative border-l border-border ml-2 mb-6 space-y-4">
+                    <div th:each="pt, it : ${course.points}" class="relative pl-6">
+                        <span class="absolute w-2 h-2 rounded-full left-[-4.5px] top-1.5"
+                              th:classappend="${it.last} ? 'bg-border' : 'bg-primary'"></span>
+                        <span class="font-body-main text-body-main"
+                              th:classappend="${it.last} ? 'text-text-muted' : ''" th:text="${pt}">지점</span>
+                    </div>
+                </div>
+                <div class="mt-auto pt-4 border-t border-border flex justify-between items-center">
+                    <span class="font-caption text-caption text-text-muted">총 거리: <span th:text="${course.distance}">0km</span></span>
+                    <div class="flex gap-2">
+                        <a th:href="@{/course}" class="bg-surface text-text-primary border border-border hover:border-primary font-body-main px-4 py-2 rounded transition-colors text-sm">코스 자세히 보기</a>
+                        <a th:href="@{/course}" class="bg-primary text-on-primary hover:bg-accent-hover font-body-main px-4 py-2 rounded transition-colors text-sm">내 코스로 담기</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 6) "착한 식당" Section -->
+    <section class="mb-section-gap fade-up">
+        <h2 class="font-section-title text-section-title mb-6">지역민이 사랑하는 착한 식당</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+            <div th:each="shop : ${region.shops}"
+                 class="bg-surface border border-border rounded p-card-padding group relative overflow-hidden">
+                <div class="flex justify-between items-start mb-2">
+                    <span class="bg-surface-alt text-text-primary font-caption text-caption px-2 py-0.5 rounded text-xs" th:text="${shop.category}">분류</span>
+                    <span class="bg-sage-bg text-on-secondary-fixed-variant font-caption text-caption px-2 py-0.5 rounded text-xs font-semibold">착한가격업소</span>
+                </div>
+                <h3 class="font-card-title text-card-title mb-1" th:text="${shop.name}">업소명</h3>
+                <p class="font-body-main text-body-main text-text-primary mb-3">
+                    <span th:text="${shop.menu}">메뉴</span>
+                    <span class="text-primary font-semibold ml-2" th:text="${shop.price}">가격</span>
+                </p>
+                <p class="font-caption text-caption text-text-muted flex items-start">
+                    <span class="material-symbols-outlined text-[14px] mr-1 mt-0.5">location_on</span>
+                    <span th:text="${shop.address}">주소</span>
+                </p>
+                <div class="absolute inset-0 bg-surface/90 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <a class="text-primary font-body-main border-b border-primary hover:text-accent-hover pb-0.5" href="#">지도에서 보기</a>
+                </div>
+            </div>
+        </div>
+    </section>
 </main>
 
+<!-- 공통 푸터 (지침 6) -->
 <footer th:replace="~{fragments/layout :: footer}"></footer>
+
+<script th:src="@{/js/region-detail.js}"></script>
 </body>
 </html>

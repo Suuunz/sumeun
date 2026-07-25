@@ -1,0 +1,147 @@
+/* =========================================================
+   숨은여행 · 화면 전용 애니메이션 / 인터랙션 유틸
+   (Stitch가 각 화면 인라인 <style>에 넣었던 규칙을 한 곳으로 모음)
+   ========================================================= */
+
+/* ----- Material Symbols 기본 굵기 ----- */
+.material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+}
+.icon-fill,
+[data-weight="fill"] {
+    font-variation-settings: 'FILL' 1, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+}
+
+/* ----- 로그인 버튼 스피너 ----- */
+.spinner {
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top: 2px solid #fff;
+    width: 16px;
+    height: 16px;
+    animation: spin 1s linear infinite;
+}
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* ----- 입력 필드 포커스(회원가입 등) ----- */
+.input-field {
+    transition: border-color 0.3s ease;
+}
+.input-field:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent);
+}
+
+/* ----- 온보딩: 단계 전환 & 선택 카드 ----- */
+.step-container {
+    transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+}
+.step-hidden {
+    opacity: 0;
+    pointer-events: none;
+    position: absolute;
+    transform: translateX(20px);
+}
+.step-visible {
+    opacity: 1;
+    pointer-events: auto;
+    position: relative;
+    transform: translateX(0);
+}
+.option-card {
+    border: 1px solid var(--border);
+    background-color: var(--surface);
+    transition: all 0.3s ease;
+    position: relative;
+}
+.option-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+}
+.option-card.selected {
+    border: 2px solid var(--accent);
+    background-color: var(--accent-soft);
+    transform: translateY(0);
+}
+.option-card .check-icon {
+    opacity: 0;
+    color: var(--accent);
+    transition: opacity 0.2s ease;
+}
+.option-card.selected .check-icon {
+    opacity: 1;
+}
+
+/* ----- 지역 상세 패널: 슬라이드 인 & 순차 페이드 ----- */
+.slide-in-right {
+    animation: slideInRight 0.35s ease-out forwards;
+}
+@keyframes slideInRight {
+    from { transform: translateX(100%); opacity: 0; }
+    to   { transform: translateX(0); opacity: 1; }
+}
+.stagger-fade-in > * {
+    opacity: 0;
+    animation: fadeIn 0.4s ease-out forwards;
+}
+.stagger-fade-in > *:nth-child(1) { animation-delay: 0ms; }
+.stagger-fade-in > *:nth-child(2) { animation-delay: 60ms; }
+.stagger-fade-in > *:nth-child(3) { animation-delay: 120ms; }
+.stagger-fade-in > *:nth-child(4) { animation-delay: 180ms; }
+.stagger-fade-in > *:nth-child(5) { animation-delay: 240ms; }
+.stagger-fade-in > *:nth-child(6) { animation-delay: 300ms; }
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ----- 스크롤바 ----- */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background-color: var(--border); border-radius: 9999px; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ----- 지역 상세(전체 페이지): 스크롤 페이드업 & 코스 카드 호버 ----- */
+.fade-up {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+.fade-up.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+.course-card-hover {
+    transition: transform 0.3s ease, border-color 0.3s ease;
+}
+.course-card-hover:hover {
+    transform: translateY(-2px);
+    border-color: var(--accent-hover);
+}
+
+/* ----- 코스 편집기: 드래그 핸들 ----- */
+.drag-handle:active { cursor: grabbing !important; }
+
+/* ----- 코스 저장 완료: 체크 그리기 & 페이드업 ----- */
+@keyframes drawCheck {
+    0%   { stroke-dashoffset: 100; opacity: 0; }
+    100% { stroke-dashoffset: 0; opacity: 1; }
+}
+.animate-check {
+    stroke-dasharray: 100;
+    stroke-dashoffset: 100;
+    animation: drawCheck 0.6s ease-out forwards;
+}
+@keyframes fadeUp {
+    0%   { opacity: 0; transform: translateY(20px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-up {
+    opacity: 0;
+    animation: fadeUp 0.8s ease-out 0.3s forwards;
+}

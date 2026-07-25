@@ -1,15 +1,48 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/layout :: head('숨은여행 · map')}"></head>
-<body>
+<html class="light" lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Sumeun · 지역 탐색')}"></head>
+<body class="bg-background text-text-primary min-h-screen flex flex-col font-body-main antialiased selection:bg-accent-soft selection:text-primary">
+
+<!-- 공통 상단 네비게이션 (지침 6: Stitch 네비 삭제 후 프래그먼트로 교체) -->
 <header th:replace="~{fragments/layout :: header}"></header>
 
-<main style="max-width: var(--max-w); margin: 0 auto; padding: var(--space-4) var(--space-3);">
-    <span class="chip">퍼블리싱 준비 중</span>
-    <h1 style="font-family: var(--font-serif); font-size: var(--fs-page); margin-top: var(--space-2);">map</h1>
-    <p style="color: var(--text-muted); margin-top: var(--space-1);">이 화면은 다음 단계에서 구현됩니다.</p>
+<!-- Main Content Canvas (Map Area) -->
+<main class="flex-1 relative bg-background">
+    <!-- 지도 영역 자리표시자 (이후 GeoJSON SVG 지도로 교체 · id 유지) -->
+    <div id="map-placeholder"
+         class="absolute inset-0 m-4 md:m-section-gap bg-surface-alt border border-border rounded-xl overflow-hidden">
+        <!-- 중앙 안내 텍스트 -->
+        <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <span class="font-body-main text-body-main text-text-muted">지도 영역</span>
+        </div>
+
+        <!-- 지도 위에 겹치는 UI (지침: 살린다) -->
+        <!-- 안내 텍스트: 좌상단 -->
+        <div class="absolute top-card-padding left-card-padding bg-surface/90 backdrop-blur-sm border border-border rounded-lg px-4 py-2 flex items-center gap-2">
+            <span class="material-symbols-outlined text-primary text-sm">touch_app</span>
+            <span class="font-caption text-caption text-text-primary">지역을 눌러보세요</span>
+        </div>
+
+        <!-- 지역 빠른 이동 칩 (검색 드롭다운 대체 · regionNames 바인딩 → /region/panel) -->
+        <div class="absolute top-card-padding right-card-padding bg-surface/90 backdrop-blur-sm border border-border rounded-lg p-3 flex flex-col gap-2 w-48">
+            <span class="font-caption text-caption text-text-muted px-1">이런 곳은 어때요?</span>
+            <a th:each="name : ${regionNames}" th:href="@{/region/panel}"
+               class="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-accent-soft transition-colors font-body-main text-body-main text-text-primary">
+                <span class="material-symbols-outlined text-text-muted text-sm">location_on</span>
+                <span th:text="${name}">지역명</span>
+            </a>
+        </div>
+
+        <!-- 무작위로 한 곳 보기: 우하단 → /region/panel -->
+        <a th:href="@{/region/panel}"
+           class="absolute bottom-card-padding right-card-padding bg-surface border border-border rounded-lg px-6 h-[44px] flex items-center gap-2 hover:bg-surface-alt transition-colors font-body-main text-body-main text-text-primary shadow-sm">
+            <span class="material-symbols-outlined text-primary">shuffle</span>
+            무작위로 한 곳 보기
+        </a>
+    </div>
 </main>
 
+<!-- 공통 푸터 -->
 <footer th:replace="~{fragments/layout :: footer}"></footer>
 </body>
 </html>

@@ -15,6 +15,9 @@
     --accent-hover: #B9764C;
     --accent-soft: #F6E9DE;
     --sage: #7A9A7E;
+    --sage-bg: #E9F0E9;
+    --sage-border: #C6E8C9;
+    --error: #BA1A1A;
 
     /* ----- Typography ----- */
     --font-sans: 'Pretendard', sans-serif;
