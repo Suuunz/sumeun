@@ -1,0 +1,183 @@
+/* =========================================================
+   숨은여행 · Design Tokens
+   전역 디자인 변수, 리셋, 기본 타이포, 공통 컴포넌트 클래스
+   ========================================================= */
+
+:root {
+    /* ----- Color ----- */
+    --bg: #FAF8F4;
+    --surface: #FFFFFF;
+    --surface-alt: #F4F1EB;
+    --border: #E7E1D7;
+    --text: #2E2B26;
+    --text-muted: #8B8377;
+    --accent: #D08A5D;
+    --accent-hover: #B9764C;
+    --accent-soft: #F6E9DE;
+    --sage: #7A9A7E;
+
+    /* ----- Typography ----- */
+    --font-sans: 'Pretendard', sans-serif;
+    --font-serif: 'Gowun Batang', serif;
+
+    --fs-page: 36px;
+    --fs-section: 22px;
+    --fs-card: 17px;
+    --fs-body: 15px;
+    --fs-caption: 13px;
+
+    --tracking-body: -0.01em;
+    --leading-body: 1.7;
+
+    /* ----- Radius ----- */
+    --radius-card: 12px;
+    --radius-btn: 8px;
+    --radius-chip: 999px;
+
+    /* ----- Spacing (8px grid) ----- */
+    --space-1: 8px;
+    --space-2: 16px;
+    --space-3: 24px;
+    --space-4: 32px;
+
+    /* ----- Layout ----- */
+    --max-w: 1360px;
+
+    /* ----- Motion ----- */
+    --transition: 250ms ease-out;
+}
+
+/* =========================================================
+   Reset
+   ========================================================= */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+* {
+    margin: 0;
+}
+
+html {
+    -webkit-text-size-adjust: 100%;
+}
+
+img,
+picture,
+svg,
+video {
+    display: block;
+    max-width: 100%;
+}
+
+button,
+input,
+select,
+textarea {
+    font: inherit;
+    color: inherit;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+/* =========================================================
+   Base
+   ========================================================= */
+body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    font-size: var(--fs-body);
+    letter-spacing: var(--tracking-body);
+    line-height: var(--leading-body);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* =========================================================
+   Components
+   ========================================================= */
+
+/* --- Buttons --- */
+.btn-primary,
+.btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-1);
+    height: 44px;
+    padding: 0 var(--space-3);
+    border-radius: var(--radius-btn);
+    font-size: var(--fs-body);
+    font-weight: 600;
+    cursor: pointer;
+    transition: background var(--transition),
+                color var(--transition),
+                border-color var(--transition),
+                transform var(--transition),
+                box-shadow var(--transition);
+}
+
+.btn-primary {
+    background: var(--accent);
+    color: #FFFFFF;
+    border: 1px solid var(--accent);
+}
+
+.btn-primary:hover {
+    background: var(--accent-hover);
+    border-color: var(--accent-hover);
+    transform: translateY(-2px);
+}
+
+.btn-secondary {
+    background: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--border);
+}
+
+.btn-secondary:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    transform: translateY(-2px);
+}
+
+/* --- Chip --- */
+.chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px var(--space-2);
+    background: var(--surface-alt);
+    color: var(--text-muted);
+    font-size: var(--fs-caption);
+    border-radius: var(--radius-chip);
+    transition: background var(--transition), color var(--transition);
+}
+
+/* --- Sage badge --- */
+.badge-sage {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 12px;
+    background: color-mix(in srgb, var(--sage) 16%, transparent);
+    color: var(--sage);
+    font-size: var(--fs-caption);
+    font-weight: 600;
+    border-radius: var(--radius-chip);
+}
+
+/* --- Card --- */
+.card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-card);
+    padding: var(--space-3);
+    transition: box-shadow var(--transition),
+                transform var(--transition),
+                border-color var(--transition);
+}
