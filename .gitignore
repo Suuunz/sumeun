@@ -3,6 +3,10 @@ HELP.md
 build/
 hs_err_pid*.log
 replay_pid*.log
+### H2 로컬 DB (개발용, 커밋 안 함) ###
+/data/
+*.mv.db
+*.trace.db
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/

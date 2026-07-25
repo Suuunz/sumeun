@@ -7,5 +7,27 @@ spring:
     livereload:
       enabled: true
 
+  # ----- DataSource (개발: H2 파일 모드) -----
+  # 재시작해도 데이터 유지. MySQL/PostgreSQL 전환 시 이 블록만 교체.
+  datasource:
+    url: jdbc:h2:file:./data/sumeun
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  # ----- JPA / Hibernate -----
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  # ----- H2 콘솔 (개발 중 데이터 확인용: /h2-console) -----
+  h2:
+    console:
+      enabled: true
+
 server:
   port: 8080
