@@ -11,10 +11,9 @@
     <!-- 지도 영역 자리표시자 (이후 GeoJSON SVG 지도로 교체 · id 유지) -->
     <div id="map-placeholder"
          class="absolute inset-0 m-4 md:m-section-gap bg-surface-alt border border-border rounded-xl overflow-hidden">
-        <!-- 중앙 안내 텍스트 -->
-        <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <span class="font-body-main text-body-main text-text-muted">지도 영역</span>
-        </div>
+        <!-- 시군구 SVG 지도 (map.js가 sig.json을 fetch해 path 채움) -->
+        <svg id="korea-map" class="korea-map" viewBox="0 0 800 1000"
+             preserveAspectRatio="xMidYMid meet" role="img" aria-label="대한민국 시군구 지도"></svg>
 
         <!-- 지도 위에 겹치는 UI (지침: 살린다) -->
         <!-- 안내 텍스트: 좌상단 -->
@@ -44,5 +43,11 @@
 
 <!-- 공통 푸터 -->
 <footer th:replace="~{fragments/layout :: footer}"></footer>
+
+<!-- 지도 라이브러리(필요 모듈만 자체 호스팅) + 초기화 -->
+<script th:src="@{/js/d3-array.min.js}"></script>
+<script th:src="@{/js/d3-geo.min.js}"></script>
+<script th:src="@{/js/topojson-client.min.js}"></script>
+<script th:src="@{/js/map.js}"></script>
 </body>
 </html>

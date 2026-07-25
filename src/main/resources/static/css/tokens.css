@@ -180,6 +180,29 @@ body {
     white-space: nowrap;
 }
 
+/* --- Map (시군구 SVG 지도) --- */
+.korea-map {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+.sig-path {
+    fill: var(--surface-alt);
+    stroke: var(--border);
+    stroke-width: 0.5px;
+    vector-effect: non-scaling-stroke;
+    transition: fill var(--transition);
+}
+.sig-path:hover {
+    fill: var(--accent-soft);
+    cursor: pointer;
+}
+.sig-path.selected {
+    fill: var(--accent);
+}
+
 /* --- Card --- */
 .card {
     background: var(--surface);
