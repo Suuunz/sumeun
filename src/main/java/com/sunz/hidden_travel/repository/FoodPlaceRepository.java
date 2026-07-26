@@ -8,4 +8,6 @@ import java.util.List;
 public interface FoodPlaceRepository extends JpaRepository<FoodPlace, Long> {
 
     List<FoodPlace> findBySigCd(String sigCd);
+
+    boolean existsBySourceContentId(String sourceContentId);
 }

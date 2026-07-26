@@ -41,6 +41,9 @@ public class TravelCourse {
 
     private String totalDistance;
 
+    /** TourAPI contentId (중복 적재 방지 키) */
+    private String sourceContentId;
+
     @ElementCollection
     @CollectionTable(name = "course_point", joinColumns = @JoinColumn(name = "course_id"))
     @OrderColumn(name = "point_index")

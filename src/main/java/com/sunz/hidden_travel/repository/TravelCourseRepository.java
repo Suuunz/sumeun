@@ -8,4 +8,6 @@ import java.util.List;
 public interface TravelCourseRepository extends JpaRepository<TravelCourse, Long> {
 
     List<TravelCourse> findBySigCd(String sigCd);
+
+    boolean existsBySourceContentId(String sourceContentId);
 }

@@ -40,4 +40,7 @@ public class FoodPlace {
     private Double lat;
 
     private Double lng;
+
+    /** TourAPI contentId (중복 적재 방지 키) */
+    private String sourceContentId;
 }

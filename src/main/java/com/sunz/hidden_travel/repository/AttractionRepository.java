@@ -8,4 +8,6 @@ import java.util.List;
 public interface AttractionRepository extends JpaRepository<Attraction, Long> {
 
     List<Attraction> findBySigCd(String sigCd);
+
+    boolean existsBySourceContentId(String sourceContentId);
 }
