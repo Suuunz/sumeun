@@ -1,6 +1,9 @@
 package com.sunz.hidden_travel.service;
 
+import com.sunz.hidden_travel.controller.dto.CandidateItem;
 import com.sunz.hidden_travel.controller.dto.CourseCard;
+import com.sunz.hidden_travel.controller.dto.CourseInitItem;
+import com.sunz.hidden_travel.controller.dto.CoursePageData;
 import com.sunz.hidden_travel.controller.dto.CoursePoint;
 import com.sunz.hidden_travel.controller.dto.GoodPriceShop;
 import com.sunz.hidden_travel.controller.dto.RegionBundle;
@@ -30,6 +33,7 @@ public class RegionQueryService {
 
     private static final int SHOP_LIMIT = 6;
     private static final int COURSE_CARD_LIMIT = 3;
+    private static final int CANDIDATE_LIMIT = 40;
 
     /** 착한가격업소 중 비식당(서비스) 업종 제외 키워드 — 화면은 식당 위주로 노출 */
     private static final List<String> NON_FOOD = List.of(
@@ -142,15 +146,66 @@ public class RegionQueryService {
                     .map(com.sunz.hidden_travel.domain.CoursePoint::getName)
                     .limit(6).toList();
             cards.add(new CourseCard(tc.getTitle(), themeLabel(tc.getTheme()), "여행코스",
-                    points, tc.getTotalDistance()));
+                    points, tc.getTotalDistance(), tc.getId()));
         }
         if (cards.isEmpty() && (!attractions.isEmpty() || !foods.isEmpty())) {
             List<String> points = new ArrayList<>();
             attractions.stream().limit(3).forEach(a -> points.add(a.getName()));
             foods.stream().limit(1).forEach(f -> points.add(f.getName()));
-            cards.add(new CourseCard(name + " 하루 한 바퀴", "추천 코스", "간이 코스", points, null));
+            cards.add(new CourseCard(name + " 하루 한 바퀴", "추천 코스", "간이 코스", points, null, null));
         }
         return cards;
+    }
+
+    /* =========================================================
+       코스 만들기 화면 데이터 (후보 4탭 + 초기 코스)
+       ========================================================= */
+    public CoursePageData coursePageData(String sigCd, Long courseId) {
+        Region region = regionRepository.findById(sigCd).orElse(null);
+        String regionName = region != null ? region.getName() : "지역";
+
+        List<CandidateItem> attractions = attractionRepository.findBySigCd(sigCd).stream()
+                .limit(CANDIDATE_LIMIT)
+                .map(a -> new CandidateItem(String.valueOf(a.getId()), "attraction", a.getName(),
+                        a.getAddr(), a.getType() != null ? a.getType() : "관광지", false, null))
+                .toList();
+
+        List<CandidateItem> foods = foodPlaceRepository.findBySigCd(sigCd).stream()
+                .limit(CANDIDATE_LIMIT)
+                .map(f -> new CandidateItem(String.valueOf(f.getId()), "food", f.getName(),
+                        f.getAddr(), f.getCategory() != null ? f.getCategory() : "먹거리", false, null))
+                .toList();
+
+        List<CandidateItem> goodShops = goodPriceShopRepository.findBySigCd(sigCd).stream()
+                .filter(s -> isFood(s.getCategory()))
+                .limit(CANDIDATE_LIMIT)
+                .map(s -> new CandidateItem(String.valueOf(s.getId()), "goodprice", s.getName(),
+                        s.getAddr(), s.getCategory(), true, shopPriceText(s)))
+                .toList();
+
+        List<CandidateItem> specialties = specialtyRepository.findBySigCd(sigCd).stream()
+                .map(sp -> new CandidateItem(String.valueOf(sp.getId()), "specialty", sp.getName(),
+                        sp.getSeason(), "특산물", false, null))
+                .toList();
+
+        List<CourseInitItem> initial = new ArrayList<>();
+        if (courseId != null) {
+            travelCourseRepository.findById(courseId).ifPresent(tc -> {
+                int order = 1;
+                for (com.sunz.hidden_travel.domain.CoursePoint p : tc.getPoints()) {
+                    initial.add(new CourseInitItem(order++, p.getName(),
+                            p.getType() != null ? p.getType() : "코스", false));
+                }
+            });
+        }
+
+        return new CoursePageData(sigCd, regionName, regionName + " 코스",
+                attractions, foods, goodShops, specialties, initial);
+    }
+
+    private String shopPriceText(com.sunz.hidden_travel.domain.GoodPriceShop s) {
+        String m = s.getMenu() != null ? s.getMenu() : "";
+        return (m + " " + priceText(s.getPrice())).trim();
     }
 
     private String themeLabel(String cat) {

@@ -82,8 +82,8 @@
                 <div class="mt-auto pt-4 border-t border-border flex justify-between items-center">
                     <span class="font-caption text-caption text-text-muted">총 거리: <span th:text="${course.distance}">0km</span></span>
                     <div class="flex gap-2">
-                        <a th:href="@{/course}" class="bg-surface text-text-primary border border-border hover:border-primary font-body-main px-4 py-2 rounded transition-colors text-sm">코스 자세히 보기</a>
-                        <a th:href="@{/course}" class="bg-primary text-on-primary hover:bg-accent-hover font-body-main px-4 py-2 rounded transition-colors text-sm">내 코스로 담기</a>
+                        <a th:href="@{/course(sigCd=${sigCd}, courseId=${course.courseId})}" class="bg-surface text-text-primary border border-border hover:border-primary font-body-main px-4 py-2 rounded transition-colors text-sm">코스 자세히 보기</a>
+                        <a th:href="@{/course(sigCd=${sigCd}, courseId=${course.courseId})}" class="bg-primary text-on-primary hover:bg-accent-hover font-body-main px-4 py-2 rounded transition-colors text-sm">내 코스로 담기</a>
                     </div>
                 </div>
             </div>

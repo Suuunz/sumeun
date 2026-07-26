@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<body>
+<!-- 코스 만들기 왼쪽 후보 카드 (CandidateItem c) -->
+<div th:fragment="candCard(c)"
+     class="cand-card bg-surface border border-border rounded-lg p-4 flex items-center gap-4 hover:border-outline-variant transition-colors group"
+     th:attr="data-name=${c.name},data-type=${c.type},data-id=${c.id},data-category=${c.category},data-sage=${c.sage}">
+    <div class="w-10 h-10 rounded-full bg-surface-alt flex items-center justify-center shrink-0">
+        <span class="material-symbols-outlined text-text-muted"
+              th:text="${c.type == 'attraction' ? 'photo_camera' : (c.type == 'food' ? 'restaurant' : (c.type == 'goodprice' ? 'volunteer_activism' : 'local_florist'))}">place</span>
+    </div>
+    <div class="flex-1 min-w-0">
+        <div class="flex items-center gap-2 mb-1 flex-wrap">
+            <h3 class="font-card-title text-card-title text-text-primary truncate" th:text="${c.name}">이름</h3>
+            <span class="bg-surface-alt text-text-muted font-caption text-caption px-2 py-0.5 rounded" th:text="${c.category}">유형</span>
+            <span th:if="${c.sage}" class="badge-sage">착한가격업소</span>
+        </div>
+        <p class="font-caption text-caption text-text-muted truncate"
+           th:text="${c.priceText != null ? c.priceText : (c.desc != null ? c.desc : '')}">설명</p>
+    </div>
+    <!-- 담기 / 담김 (course.js가 토글) -->
+    <button type="button" class="add-btn px-3 py-1.5 bg-surface border border-border text-text-primary rounded font-caption text-caption hover:bg-surface-alt transition-colors shrink-0 whitespace-nowrap">+ 담기</button>
+    <button type="button" class="added-check hidden w-8 h-8 rounded-full bg-sage-bg text-sage flex items-center justify-center shrink-0 cursor-default" title="담김" disabled>
+        <span class="material-symbols-outlined text-[20px] icon-fill">check</span>
+    </button>
+</div>
+</body>
+</html>
