@@ -1,12 +1,13 @@
 package com.sunz.hidden_travel.controller;
 
 import com.sunz.hidden_travel.controller.dto.CourseCard;
-import com.sunz.hidden_travel.controller.dto.CoursePoint;
 import com.sunz.hidden_travel.controller.dto.CourseStop;
 import com.sunz.hidden_travel.controller.dto.Recommendation;
+import com.sunz.hidden_travel.controller.dto.RegionBundle;
 import com.sunz.hidden_travel.controller.dto.RegionMetric;
 import com.sunz.hidden_travel.controller.dto.RegionSummary;
 import com.sunz.hidden_travel.service.DummyRegionData;
+import com.sunz.hidden_travel.service.RegionQueryService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,10 +16,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.util.List;
 
 /**
- * 화면 라우팅 + 퍼블리싱용 더미 데이터 주입 컨트롤러.
- * (DB / JPA / Security / 외부 API 연동 없음 — 하드코딩 더미 데이터)
- *
- * 지역 더미 데이터는 {@link DummyRegionData} 로 중앙화하여 API/페이지가 공유한다.
+ * 화면 라우팅 컨트롤러.
+ * 지역 상세/패널은 {@link RegionQueryService}(DB 실데이터)로 채운다.
+ * 코스 편집/저장 등 아직 데이터가 없는 화면은 더미({@link DummyRegionData})를 유지한다.
  * 기본 지역은 안동시(SIG_CD 47170).
  */
 @Controller
@@ -27,34 +27,16 @@ public class PageController {
     private static final String DEFAULT_SIG = "47170"; // 안동시
 
     private final DummyRegionData regionData;
+    private final RegionQueryService regionQueryService;
 
-    public PageController(DummyRegionData regionData) {
+    public PageController(DummyRegionData regionData, RegionQueryService regionQueryService) {
         this.regionData = regionData;
+        this.regionQueryService = regionQueryService;
     }
 
     /* =========================================================
-       페이지 전용 더미 (코스/지표/추천)
+       코스 편집/저장 화면 전용 더미
        ========================================================= */
-
-    private List<CourseCard> recommendedCourses() {
-        return List.of(
-                new CourseCard("천년의 발자취를 따라서", "역사 탐방", "반나절",
-                        List.of("하회마을", "병산서원", "도산서원"), "12km"),
-                new CourseCard("입이 즐거운 안동 한 바퀴", "미식 여행", "당일치기",
-                        List.of("안동 구시장 (찜닭 골목)", "맘모스 베이커리", "월영교 달빛 산책", "헛제사밥 거리"), "8km"),
-                new CourseCard("물길 따라 걷는 사색의 시간", "자연 휴양", "1박 2일",
-                        List.of("낙동강 생태 학습관", "선성수상길", "만휴정"), "25km")
-        );
-    }
-
-    private List<RegionMetric> metrics() {
-        return List.of(
-                new RegionMetric("1.2M", "연간 방문객"),
-                new RegionMetric("Top 5", "전국 랭킹"),
-                new RegionMetric("342", "관광 콘텐츠 수"),
-                new RegionMetric("45", "착한가격업소 수")
-        );
-    }
 
     private List<CourseStop> myCourse() {
         return List.of(
@@ -71,6 +53,11 @@ public class PageController {
                 new Recommendation("경북 영양군", "별빛 흐르는 밤", "국제밤하늘보호공원의 은하수"),
                 new Recommendation("경북 봉화군", "오지 간이역 여행", "세월이 멈춘 산골 기차역")
         );
+    }
+
+    private RegionSummary toSummary(RegionBundle b) {
+        return new RegionSummary(b.name(), b.province(), b.aiSummary(),
+                b.specialties(), b.shops(), b.briefCourse());
     }
 
     /* =========================================================
@@ -102,21 +89,26 @@ public class PageController {
         return "map";
     }
 
-    /** 지역 상세 탐색 — 지도 우측 슬라이드 패널(독립 페이지 버전) */
+    /** 지역 상세 탐색 — 지도 우측 슬라이드 패널(독립 페이지 버전, 실데이터) */
     @GetMapping("/region/panel")
     public String regionPanel(Model model) {
-        model.addAttribute("region", regionData.get(DEFAULT_SIG));
+        model.addAttribute("region", toSummary(regionQueryService.bundle(DEFAULT_SIG)));
         return "region-panel";
     }
 
-    /** 지역 상세(깊이 있는 탐색) — 전체 페이지, 헤더/푸터 프래그먼트 사용 */
+    /** 지역 상세(깊이 있는 탐색) — 전체 페이지, 실데이터 */
     @GetMapping("/region")
     public String regionDetail(@RequestParam(value = "sigCd", required = false) String sigCd, Model model) {
-        RegionSummary region = regionData.get(sigCd != null ? sigCd : DEFAULT_SIG);
-        model.addAttribute("region", region);
-        model.addAttribute("heroDesc", region.aiSummary());
-        model.addAttribute("metrics", metrics());
-        model.addAttribute("recommendedCourses", recommendedCourses());
+        RegionBundle b = regionQueryService.bundle(sigCd != null ? sigCd : DEFAULT_SIG);
+        model.addAttribute("region", toSummary(b));
+        model.addAttribute("heroDesc", b.aiSummary());
+        model.addAttribute("metrics", List.of(
+                new RegionMetric(String.valueOf(b.attractionCount()), "관광 콘텐츠 수"),
+                new RegionMetric(String.valueOf(b.foodCount()), "맛집 수"),
+                new RegionMetric(String.valueOf(b.shopCount()), "착한가격업소 수"),
+                new RegionMetric(String.valueOf(b.specialtyCount()), "특산물 수")
+        ));
+        model.addAttribute("recommendedCourses", b.recommendedCourses());
         return "region-detail";
     }
 
