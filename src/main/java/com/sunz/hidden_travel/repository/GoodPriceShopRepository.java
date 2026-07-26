@@ -8,4 +8,6 @@ import java.util.List;
 public interface GoodPriceShopRepository extends JpaRepository<GoodPriceShop, Long> {
 
     List<GoodPriceShop> findBySigCd(String sigCd);
+
+    boolean existsByNameAndAddr(String name, String addr);
 }

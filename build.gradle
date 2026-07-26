@@ -26,6 +26,8 @@ dependencies {
 	// 개발용 H2(파일 모드). MySQL/PostgreSQL 전환 시 이 드라이버를 교체하고
 	// application.yaml 의 datasource 만 바꾸면 된다.
 	runtimeOnly 'com.h2database:h2'
+	// CSV 파싱(주소 내 콤마/따옴표 안전 처리)
+	implementation 'com.opencsv:opencsv:5.9'
 	// runtimeOnly 'com.mysql:mysql-connector-j'
 	// runtimeOnly 'org.postgresql:postgresql'
 	compileOnly 'org.projectlombok:lombok'
