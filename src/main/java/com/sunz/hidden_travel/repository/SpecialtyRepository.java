@@ -8,4 +8,6 @@ import java.util.List;
 public interface SpecialtyRepository extends JpaRepository<Specialty, Long> {
 
     List<Specialty> findBySigCd(String sigCd);
+
+    boolean existsBySigCdAndName(String sigCd, String name);
 }
