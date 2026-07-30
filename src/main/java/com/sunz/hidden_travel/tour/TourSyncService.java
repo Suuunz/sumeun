@@ -197,6 +197,45 @@ public class TourSyncService {
         return report;
     }
 
+    /**
+     * 이미 적재된 여행코스의 경유지를 다시 읽어 contentId·이미지를 채운다.
+     * (이 필드들이 추가되기 전에 적재된 코스 보정용 — 코스 1건당 호출 1회)
+     */
+    public Map<String, Object> refreshCoursePoints() {
+        List<TravelCourse> courses = travelCourseRepository.findAll();
+        int updated = 0;
+        int skipped = 0;
+        boolean budgetOut = false;
+
+        for (TravelCourse tc : courses) {
+            // 경유지가 비어 있거나(=아직 못 받아온 코스) contentId 가 없는 경유지가 있으면 다시 받는다.
+            // 비어 있는 경우를 제외하면, 한 번 비워진 코스가 영영 복구되지 않는다.
+            boolean needs = tc.getPoints().isEmpty() || tc.getPoints().stream()
+                    .anyMatch(p -> p.getContentId() == null || p.getContentId().isBlank());
+            if (!needs) {
+                skipped++;
+                continue;
+            }
+            if (client.remainingCalls() <= 0) {
+                budgetOut = true;
+                break;
+            }
+            fillCoursePoints(tc, tc.getSourceContentId());
+            travelCourseRepository.save(tc);
+            updated++;
+            sleep();
+        }
+
+        Map<String, Object> m = new LinkedHashMap<>();
+        m.put("전체 코스", courses.size());
+        m.put("보정함", updated);
+        m.put("이미 완료", skipped);
+        m.put("남은 호출", client.remainingCalls());
+        m.put("한도 소진으로 중단", budgetOut);
+        log.info("[TourSync] refreshCoursePoints → {}", m);
+        return m;
+    }
+
     /** 현재 호출 예산 상태만 조회(호출 없음) */
     public Map<String, Object> budget() {
         Map<String, Object> m = new LinkedHashMap<>();
@@ -274,7 +313,16 @@ public class TourSyncService {
                 cp.setOrder(order++);
                 cp.setName(text(s, "subname"));
                 cp.setDescription(text(s, "subdetailoverview"));
+                // 같은 응답에 들어 있어 추가 호출 없이 얻는 값들
+                cp.setContentId(text(s, "subcontentid"));
+                cp.setImage(text(s, "subdetailimg"));
                 points.add(cp);
+            }
+            // 응답이 비면(일시적 오류·rate limit 포함) 기존 경유지를 지우지 않는다.
+            // 빈 목록으로 덮어쓰면 이미 적재해둔 경유지가 사라진다.
+            if (points.isEmpty()) {
+                log.debug("[TourSync] 경유지 응답 없음 — 기존 값 유지 cid={}", cid);
+                return;
             }
             tc.setPoints(points);
         } catch (Exception e) {

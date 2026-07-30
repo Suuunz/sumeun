@@ -32,6 +32,7 @@
         row.setAttribute('data-category', o.category || '');
         row.setAttribute('data-sage', o.sage ? 'true' : 'false');
         if (o.id) row.setAttribute('data-id', o.id);
+        if (o.contentId) row.setAttribute('data-content-id', o.contentId);
         if (o.image) row.setAttribute('data-image', o.image);
         if (o.addr) row.setAttribute('data-addr', o.addr);
 
@@ -56,8 +57,8 @@
         if (o.sage) head.appendChild(el('span', 'badge-sage', '착한가격업소'));
         body.appendChild(head);
 
-        // 상세는 TourAPI 관광지(id 보유)만 제공
-        if (o.type === 'attraction' && o.id) {
+        // 상세는 TourAPI 콘텐츠(관광지 id 또는 경유지 contentId)만 제공
+        if (o.id || o.contentId) {
             const detailBtn = el('button', 'detail-btn mt-1 inline-flex items-center gap-1 font-caption text-caption text-primary hover:underline');
             detailBtn.type = 'button';
             detailBtn.appendChild(el('span', 'material-symbols-outlined text-[16px]', 'expand_more'));
@@ -132,6 +133,7 @@
                 category: i.getAttribute('data-category'),
                 sage: i.getAttribute('data-sage') === 'true',
                 id: i.getAttribute('data-id'),
+                contentId: i.getAttribute('data-content-id'),
                 image: i.getAttribute('data-image'),
                 addr: i.getAttribute('data-addr')
             }));
@@ -295,8 +297,14 @@
 
         if (panel.dataset.loaded === 'true') return; // 이미 받아둔 내용 재사용
 
+        // 적재된 관광지면 id 로, 아직 없는 경유지면 contentId 로 조회한다
+        // (contentId 경로는 서버가 관광지로 저장한 뒤 돌려준다)
+        const id = host.getAttribute('data-id');
+        const contentId = host.getAttribute('data-content-id');
+        const url = id ? '/api/attraction/' + id : '/api/attraction/by-content/' + contentId;
+
         panel.innerHTML = '<p class="font-caption text-caption text-text-muted">불러오는 중…</p>';
-        fetch('/api/attraction/' + host.getAttribute('data-id'))
+        fetch(url)
             .then((res) => (res.ok ? res.json() : null))
             .then((d) => {
                 if (!d) {
@@ -305,6 +313,10 @@
                 }
                 panel.innerHTML = renderDetail(d, withAddr);
                 panel.dataset.loaded = 'true';
+                // contentId 로 받아온 경우 서버가 관광지로 저장했으므로 id 를 기억해둔다
+                if (!id && d.id) host.setAttribute('data-id', d.id);
+                // 사진이 없던 항목이면 이제 채운다
+                fillThumbIfMissing(host, d.image, d.name);
             })
             .catch(() => {
                 panel.innerHTML = '<p class="font-caption text-caption text-text-muted">정보를 불러오지 못했어요.</p>';
@@ -315,6 +327,20 @@
         const d = document.createElement('div');
         d.textContent = s == null ? '' : String(s);
         return d.innerHTML;
+    }
+
+    /** 상세를 받아오면서 처음 알게 된 사진을 항목에 채운다(경유지는 사진이 없는 경우가 있다) */
+    function fillThumbIfMissing(host, image, name) {
+        if (!image || host.querySelector('img')) return;
+        host.setAttribute('data-image', image);
+        const anchor = host.querySelector('.order-num');
+        if (!anchor || !anchor.parentNode) return;
+        const img = el('img', 'w-11 h-11 rounded-lg object-cover border border-border shrink-0 bg-surface-alt');
+        img.src = image;
+        img.alt = name || '';
+        img.loading = 'lazy';
+        anchor.parentNode.insertBefore(img, anchor.nextSibling);
+        saveDraft();
     }
 
     function detailRow(icon, label, value) {

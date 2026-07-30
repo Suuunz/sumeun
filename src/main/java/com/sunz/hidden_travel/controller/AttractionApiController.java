@@ -25,4 +25,14 @@ public class AttractionApiController {
         AttractionDetail detail = attractionDetailService.detail(id);
         return detail == null ? ResponseEntity.notFound().build() : ResponseEntity.ok(detail);
     }
+
+    /**
+     * TourAPI contentId 로 조회 — 여행코스 경유지용.
+     * 아직 적재되지 않은 콘텐츠면 관광지로 새로 저장한 뒤 돌려준다.
+     */
+    @GetMapping("/api/attraction/by-content/{contentId}")
+    public ResponseEntity<AttractionDetail> detailByContent(@PathVariable String contentId) {
+        AttractionDetail detail = attractionDetailService.detailByContentId(contentId);
+        return detail == null ? ResponseEntity.notFound().build() : ResponseEntity.ok(detail);
+    }
 }

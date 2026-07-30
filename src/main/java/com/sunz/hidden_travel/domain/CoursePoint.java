@@ -25,4 +25,16 @@ public class CoursePoint {
 
     @Column(columnDefinition = "TEXT")
     private String description;
+
+    /**
+     * 경유지 자체의 TourAPI contentId(detailInfo2 의 subcontentid).
+     * 경유지는 코스에 딸린 텍스트가 아니라 독립 콘텐츠라서, 이 값으로
+     * 관광지와 완전히 동일하게 상세를 조회할 수 있다.
+     */
+    @Column(name = "content_id")
+    private String contentId;
+
+    /** 경유지 대표 이미지(subdetailimg) — detailInfo2 응답에 이미 포함되어 추가 호출이 없다 */
+    @Column(columnDefinition = "TEXT")
+    private String image;
 }

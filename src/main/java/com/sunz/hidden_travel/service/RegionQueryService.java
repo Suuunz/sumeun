@@ -196,8 +196,21 @@ public class RegionQueryService {
             travelCourseRepository.findById(courseId).ifPresent(tc -> {
                 int order = 1;
                 for (com.sunz.hidden_travel.domain.CoursePoint p : tc.getPoints()) {
-                    initial.add(new CourseInitItem(order++, p.getName(),
-                            p.getType() != null ? p.getType() : "코스", false));
+                    // 경유지의 contentId 로 이미 적재된 관광지를 찾으면 그 id 를 넘겨
+                    // 후보 카드에서 담은 항목과 똑같이 동작하게 한다.
+                    Attraction matched = (p.getContentId() == null || p.getContentId().isBlank())
+                            ? null
+                            : attractionRepository.findFirstBySourceContentId(p.getContentId()).orElse(null);
+
+                    initial.add(new CourseInitItem(
+                            order++,
+                            p.getName(),
+                            p.getType() != null ? p.getType() : "코스",
+                            false,
+                            matched != null ? matched.getId() : null,
+                            p.getContentId(),
+                            matched != null && matched.getImage() != null ? matched.getImage() : p.getImage(),
+                            matched != null ? matched.getAddr() : null));
                 }
             });
         }

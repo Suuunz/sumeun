@@ -80,22 +80,34 @@
             </div>
 
             <div id="course-timeline" class="flex-1 flex flex-col">
-                <!-- 초기 코스 항목(추천 코스에서 담아옴) -->
+                <!-- 초기 코스 항목(추천 코스에서 담아옴) — 경유지도 TourAPI 콘텐츠라 사진·상세 제공 -->
                 <div th:each="it : ${data.initialItems}"
-                     class="course-item flex items-center gap-3 bg-surface border border-border rounded-lg p-3 mb-3"
-                     th:attr="data-name=${it.name},data-type='course',data-category=${it.type},data-sage=${it.sage}">
-                    <span class="material-symbols-outlined text-text-muted cursor-grab drag-handle text-[20px]">drag_indicator</span>
-                    <div class="w-7 h-7 rounded-full bg-accent-soft text-primary flex items-center justify-center font-bold text-sm shrink-0 order-num" th:text="${it.order}">1</div>
-                    <div class="flex-1 min-w-0">
-                        <div class="flex items-center gap-2 flex-wrap">
-                            <span class="font-semibold text-text-primary truncate" th:text="${it.name}">이름</span>
-                            <span class="bg-surface-alt text-text-muted font-caption text-caption px-2 py-0.5 rounded text-[11px]" th:text="${it.type}">유형</span>
-                            <span th:if="${it.sage}" class="badge-sage">착한가격업소</span>
+                     class="course-item bg-surface border border-border rounded-lg p-3 mb-3"
+                     th:attr="data-name=${it.name},data-type='course',data-category=${it.type},data-sage=${it.sage},
+                              data-id=${it.attractionId},data-content-id=${it.contentId},
+                              data-image=${it.image},data-addr=${it.addr}">
+                    <div class="flex items-center gap-3">
+                        <span class="material-symbols-outlined text-text-muted cursor-grab drag-handle text-[20px]">drag_indicator</span>
+                        <div class="w-7 h-7 rounded-full bg-accent-soft text-primary flex items-center justify-center font-bold text-sm shrink-0 order-num" th:text="${it.order}">1</div>
+                        <img th:if="${it.image != null}" th:src="${it.image}" th:alt="${it.name}" loading="lazy"
+                             class="w-11 h-11 rounded-lg object-cover border border-border shrink-0 bg-surface-alt"/>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <span class="font-semibold text-text-primary truncate" th:text="${it.name}">이름</span>
+                                <span class="bg-surface-alt text-text-muted font-caption text-caption px-2 py-0.5 rounded text-[11px]" th:text="${it.type}">유형</span>
+                                <span th:if="${it.sage}" class="badge-sage">착한가격업소</span>
+                            </div>
+                            <button th:if="${it.attractionId != null or it.contentId != null}" type="button"
+                                    class="detail-btn mt-1 inline-flex items-center gap-1 font-caption text-caption text-primary hover:underline">
+                                <span class="material-symbols-outlined text-[16px]">expand_more</span>
+                                <span class="detail-btn__label">자세히</span>
+                            </button>
                         </div>
+                        <button type="button" class="del-btn text-text-muted hover:text-error transition-colors p-1" aria-label="삭제">
+                            <span class="material-symbols-outlined">close</span>
+                        </button>
                     </div>
-                    <button type="button" class="del-btn text-text-muted hover:text-error transition-colors p-1" aria-label="삭제">
-                        <span class="material-symbols-outlined">close</span>
-                    </button>
+                    <div class="item-detail hidden mt-3 pt-3 border-t border-border"></div>
                 </div>
 
                 <!-- 빈 상태 -->

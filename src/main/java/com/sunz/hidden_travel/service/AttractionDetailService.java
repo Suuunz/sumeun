@@ -2,6 +2,7 @@ package com.sunz.hidden_travel.service;
 
 import com.sunz.hidden_travel.controller.dto.AttractionDetail;
 import com.sunz.hidden_travel.domain.Attraction;
+import com.sunz.hidden_travel.geo.SigGeometryService;
 import com.sunz.hidden_travel.repository.AttractionRepository;
 import com.sunz.hidden_travel.tour.TourApiClient;
 import org.slf4j.Logger;
@@ -30,10 +31,85 @@ public class AttractionDetailService {
 
     private final AttractionRepository attractionRepository;
     private final TourApiClient client;
+    private final SigGeometryService geometry;
 
-    public AttractionDetailService(AttractionRepository attractionRepository, TourApiClient client) {
+    public AttractionDetailService(AttractionRepository attractionRepository,
+                                   TourApiClient client,
+                                   SigGeometryService geometry) {
         this.attractionRepository = attractionRepository;
         this.client = client;
+        this.geometry = geometry;
+    }
+
+    /**
+     * TourAPI contentId 로 상세를 조회한다(여행코스 경유지용).
+     *
+     * 경유지는 코스에 딸린 텍스트가 아니라 독립 콘텐츠라서, 이미 적재된 관광지에
+     * 같은 contentId 가 있으면 그 행을 그대로 쓰고, 없으면 <b>새 Attraction 으로
+     * 만들어 저장</b>한다. 결과적으로 경유지도 관광지와 완전히 동일한 구조로 남는다.
+     *
+     * @return 조회 실패 시 null
+     */
+    @Transactional
+    public AttractionDetail detailByContentId(String contentId) {
+        if (contentId == null || contentId.isBlank()) {
+            return null;
+        }
+        Attraction existing = attractionRepository.findFirstBySourceContentId(contentId).orElse(null);
+        if (existing != null) {
+            return detail(existing.getId());
+        }
+        if (client.remainingCalls() < MIN_REMAINING) {
+            // 아직 우리 DB 에 없는 콘텐츠 + 호출 여유 없음 → 이번엔 만들지 않는다
+            return null;
+        }
+        Attraction created = createFromContent(contentId);
+        return created == null ? null : detail(created.getId());
+    }
+
+    /** contentId 로 TourAPI 를 읽어 Attraction 을 새로 만든다(관광지와 동일한 구조) */
+    private Attraction createFromContent(String contentId) {
+        JsonNode common = client.detailCommon(contentId);
+        if (common == null) {
+            return null;
+        }
+        String name = text(common, "title");
+        if (name == null || name.isBlank()) {
+            return null;
+        }
+
+        Double lng = parseDouble(text(common, "mapx"));
+        Double lat = parseDouble(text(common, "mapy"));
+        String sigCd = (lng != null && lat != null)
+                ? geometry.resolveSigCd(lng, lat).orElse(null)
+                : null;
+        if (sigCd == null) {
+            // 지역을 특정할 수 없으면 지역별 조회에서 유령 데이터가 되므로 저장하지 않는다
+            log.warn("[AttractionDetail] 좌표→SIG_CD 실패로 저장 생략: {} ({})", name, contentId);
+            return null;
+        }
+
+        Attraction a = new Attraction();
+        a.setSigCd(sigCd);
+        a.setName(name);
+        a.setType("관광지");
+        a.setAddr(addrOf(common));
+        a.setLng(lng);
+        a.setLat(lat);
+        a.setSourceContentId(contentId);
+        a.setImage(firstNonBlank(text(common, "firstimage"), text(common, "firstimage2")));
+        a.setDescription(clean(text(common, "overview")));
+        a.setHomepage(firstUrl(text(common, "homepage")));
+
+        JsonNode intro = client.detailIntro(contentId, CT_ATTRACTION);
+        if (intro != null) {
+            a.setUsetime(clean(text(intro, "usetime")));
+            a.setRestdate(clean(text(intro, "restdate")));
+            a.setParking(clean(text(intro, "parking")));
+            a.setInfocenter(clean(text(intro, "infocenter")));
+        }
+        a.setDetailFetched(true);   // 방금 채웠으므로 다시 호출하지 않는다
+        return attractionRepository.save(a);
     }
 
     /** 상세 조회. 없는 관광지면 null */
@@ -130,5 +206,26 @@ public class AttractionDetailService {
 
     private String firstNonBlank(String a, String b) {
         return !isBlank(a) ? a : (!isBlank(b) ? b : null);
+    }
+
+    private Double parseDouble(String s) {
+        if (isBlank(s)) {
+            return null;
+        }
+        try {
+            double d = Double.parseDouble(s.trim());
+            return d == 0.0 ? null : d;
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    private String addrOf(JsonNode node) {
+        String a1 = text(node, "addr1");
+        String a2 = text(node, "addr2");
+        if (isBlank(a1)) {
+            return isBlank(a2) ? null : a2;
+        }
+        return isBlank(a2) ? a1 : a1 + " " + a2;
     }
 }

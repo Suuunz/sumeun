@@ -53,6 +53,15 @@ public class AdminSyncController {
         return sync.syncMissing();
     }
 
+    /**
+     * 이미 적재된 여행코스의 경유지에 contentId·이미지를 채운다(코스당 1회).
+     *  - POST /admin/sync/tour/course-points
+     */
+    @PostMapping("/tour/course-points")
+    public Map<String, Object> coursePoints() {
+        return sync.refreshCoursePoints();
+    }
+
     /** 남은 호출 예산 조회 (API 호출 없음) — GET /admin/sync/tour/budget */
     @GetMapping("/tour/budget")
     public Map<String, Object> budget() {
