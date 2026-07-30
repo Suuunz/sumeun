@@ -83,7 +83,8 @@ public class GeminiClient {
         // JSON 으로만 답하도록 강제 — 파싱 실패를 줄인다
         ObjectNode cfg = body.putObject("generationConfig");
         cfg.put("temperature", 0.7);
-        cfg.put("maxOutputTokens", 1024);
+        // 최신 모델은 내부 추론에도 이 한도를 쓴다. 너무 작으면 본문이 비어서 온다.
+        cfg.put("maxOutputTokens", 2048);
         cfg.put("responseMimeType", "application/json");
 
         try {
@@ -108,9 +109,13 @@ public class GeminiClient {
         }
         try {
             JsonNode root = mapper.readTree(json);
-            JsonNode parts = root.path("candidates").path(0).path("content").path("parts");
+            JsonNode candidate = root.path("candidates").path(0);
+            JsonNode parts = candidate.path("content").path("parts");
             if (!parts.isArray() || parts.isEmpty()) {
-                log.warn("[Gemini] 예상치 못한 응답: {}", json.substring(0, Math.min(300, json.length())));
+                // 본문이 비는 대표적 원인: 토큰 소진(MAX_TOKENS), 안전 필터(SAFETY)
+                String reason = candidate.path("finishReason").asString();
+                log.warn("[Gemini] 본문이 비었습니다. finishReason={} 응답앞부분={}",
+                        reason, json.substring(0, Math.min(200, json.length())));
                 return null;
             }
             StringBuilder sb = new StringBuilder();
