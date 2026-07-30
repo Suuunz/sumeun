@@ -14,7 +14,7 @@ import java.util.List;
 @RestController
 public class SpotlightController {
 
-    private static final int MAX_COUNT = 4;
+    private static final int MAX_COUNT = 6;
 
     private final SpotlightService spotlightService;
 
@@ -22,8 +22,12 @@ public class SpotlightController {
         this.spotlightService = spotlightService;
     }
 
+    /**
+     * @param exclude 이미 보여준 시군구 코드 (무한 스크롤에서 중복 방지)
+     */
     @GetMapping("/api/spotlight")
-    public List<SpotlightCard> spotlight(@RequestParam(defaultValue = "2") int count) {
-        return spotlightService.pick(Math.clamp(count, 1, MAX_COUNT));
+    public List<SpotlightCard> spotlight(@RequestParam(defaultValue = "3") int count,
+                                         @RequestParam(required = false) List<String> exclude) {
+        return spotlightService.pick(Math.clamp(count, 1, MAX_COUNT), exclude);
     }
 }

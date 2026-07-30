@@ -3,14 +3,18 @@ package com.sunz.hidden_travel.service;
 import com.sunz.hidden_travel.controller.dto.SpotlightCard;
 import com.sunz.hidden_travel.domain.Attraction;
 import com.sunz.hidden_travel.domain.Region;
+import com.sunz.hidden_travel.domain.Specialty;
 import com.sunz.hidden_travel.repository.AttractionRepository;
 import com.sunz.hidden_travel.repository.GoodPriceShopRepository;
 import com.sunz.hidden_travel.repository.RegionRepository;
+import com.sunz.hidden_travel.repository.SpecialtyRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
@@ -30,28 +34,37 @@ public class SpotlightService {
     /** 카드로 내보낼 최소 관광지 수 — 너무 적으면 눌러도 볼 게 없다 */
     private static final long MIN_ATTRACTIONS = 10;
 
+    /** 소개 문구에 이름을 나열할 관광지 수 */
+    private static final int NAMES_IN_DESC = 3;
+
     private final RegionRepository regionRepository;
     private final AttractionRepository attractionRepository;
     private final GoodPriceShopRepository goodPriceShopRepository;
+    private final SpecialtyRepository specialtyRepository;
 
     public SpotlightService(RegionRepository regionRepository,
                             AttractionRepository attractionRepository,
-                            GoodPriceShopRepository goodPriceShopRepository) {
+                            GoodPriceShopRepository goodPriceShopRepository,
+                            SpecialtyRepository specialtyRepository) {
         this.regionRepository = regionRepository;
         this.attractionRepository = attractionRepository;
         this.goodPriceShopRepository = goodPriceShopRepository;
+        this.specialtyRepository = specialtyRepository;
     }
 
-    /** 서로 다른 지역 카드를 count 장 뽑는다. 후보가 모자라면 그만큼만 반환. */
+    /**
+     * 서로 다른 지역 카드를 count 장 뽑는다.
+     *
+     * @param exclude 이미 보여준 시군구 (무한 스크롤에서 중복 방지)
+     */
     @Transactional(readOnly = true)
-    public List<SpotlightCard> pick(int count) {
-        List<String> candidates =
-                new ArrayList<>(attractionRepository.findHiddenCandidateSigCds(EXCLUDED_SIDO, MIN_ATTRACTIONS));
-        List<SpotlightCard> cards = new ArrayList<>();
-        if (candidates.isEmpty()) {
-            return cards;
-        }
+    public List<SpotlightCard> pick(int count, Collection<String> exclude) {
+        Set<String> skip = exclude == null ? Set.of() : Set.copyOf(exclude);
+        List<String> candidates = new ArrayList<>(
+                attractionRepository.findHiddenCandidateSigCds(EXCLUDED_SIDO, MIN_ATTRACTIONS));
+        candidates.removeAll(skip);
 
+        List<SpotlightCard> cards = new ArrayList<>();
         while (!candidates.isEmpty() && cards.size() < count) {
             String sigCd = candidates.remove(ThreadLocalRandom.current().nextInt(candidates.size()));
             SpotlightCard card = toCard(sigCd);
@@ -60,6 +73,10 @@ public class SpotlightService {
             }
         }
         return cards;
+    }
+
+    public List<SpotlightCard> pick(int count) {
+        return pick(count, Set.of());
     }
 
     private SpotlightCard toCard(String sigCd) {
@@ -74,13 +91,52 @@ public class SpotlightService {
         // 매번 같은 사진이 나오지 않도록 무작위로 고른다
         Attraction hero = withImage.get(ThreadLocalRandom.current().nextInt(withImage.size()));
 
+        List<Attraction> all = attractionRepository.findBySigCd(sigCd);
+        int shopCount = goodPriceShopRepository.findBySigCd(sigCd).size();
+
         return new SpotlightCard(
                 sigCd,
                 region.getName(),
                 region.getProvince(),
                 hero.getImage(),
                 hero.getName(),
-                attractionRepository.findBySigCd(sigCd).size(),
-                goodPriceShopRepository.findBySigCd(sigCd).size());
+                describe(sigCd, hero, all),
+                all.size(),
+                shopCount);
+    }
+
+    /**
+     * 지역 소개 문구.
+     *
+     * TourAPI 상세(overview)는 콘텐츠 1건당 호출 2회가 들어 카드마다 부르면 한도를
+     * 금방 소진한다. 그래서 <b>이미 적재된 데이터만으로</b> 문장을 만든다.
+     * 예) "회룡포, 삼강주막 등을 볼 수 있고, 사과·참깨가 유명해요."
+     */
+    private String describe(String sigCd, Attraction hero, List<Attraction> all) {
+        List<String> names = new ArrayList<>();
+        names.add(hero.getName());
+        for (Attraction a : all) {
+            if (names.size() >= NAMES_IN_DESC) {
+                break;
+            }
+            if (a.getName() != null && !names.contains(a.getName())) {
+                names.add(a.getName());
+            }
+        }
+
+        StringBuilder sb = new StringBuilder();
+        if (!names.isEmpty()) {
+            sb.append(String.join(", ", names)).append(" 등을 볼 수 있어요.");
+        }
+
+        List<String> specialties = specialtyRepository.findBySigCd(sigCd).stream()
+                .map(Specialty::getName)
+                .filter(n -> n != null && !n.isBlank())
+                .limit(2)
+                .toList();
+        if (!specialties.isEmpty()) {
+            sb.append(' ').append(String.join("·", specialties)).append("이(가) 유명합니다.");
+        }
+        return sb.toString().trim();
     }
 }

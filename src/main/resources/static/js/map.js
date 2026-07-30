@@ -253,38 +253,97 @@
         el.style.visibility = show ? '' : 'hidden';
     }
 
-    function initSpotlight() {
-        const btn = document.getElementById('spotlight-refresh');
-        if (!btn) return;
-        btn.addEventListener('click', async () => {
-            const el = spotlightEl();
-            const cards = el ? el.querySelectorAll('a') : [];
-            btn.disabled = true;
-            try {
-                const res = await fetch('/api/spotlight?count=' + cards.length);
-                if (!res.ok) return;
-                const list = await res.json();
-                list.forEach((s, i) => {
-                    const card = cards[i];
-                    if (!card || !s) return;
-                    card.href = '/region?sigCd=' + s.sigCd;
-                    const img = card.querySelector('img');
-                    if (img) { img.src = s.image; img.alt = s.name; }
-                    const spans = card.querySelectorAll('span');
-                    // [0]=시도 배지, [1]=지역명, [2]=대표 관광지
-                    if (spans[0]) spans[0].textContent = s.province;
-                    if (spans[1]) spans[1].textContent = s.name;
-                    if (spans[2]) spans[2].textContent = s.highlight || '';
-                    const counts = card.querySelectorAll('.font-semibold');
-                    if (counts[0]) counts[0].textContent = s.attractionCount;
-                    if (counts[1]) counts[1].textContent = s.shopCount;
-                });
-            } catch (e) {
-                /* 실패하면 기존 카드를 그대로 둔다 */
-            } finally {
-                btn.disabled = false;
+    const SPOTLIGHT_PAGE = 3;   // 한 번에 이어붙일 카드 수
+    let spotlightLoading = false;
+    let spotlightDone = false;
+
+    /** 서버가 렌더한 카드와 같은 구조로 만든다(두 곳의 모양이 달라지지 않게 주의) */
+    function spotlightCard(s) {
+        const a = document.createElement('a');
+        a.href = '/region?sigCd=' + s.sigCd;
+        a.className = 'spotlight-card group bg-surface border-2 border-border rounded-xl overflow-hidden shadow-sm hover:border-primary hover:-translate-y-[2px] transition-all duration-300';
+        a.setAttribute('data-sig-cd', s.sigCd);
+
+        const esc = (v) => {
+            const d = document.createElement('div');
+            d.textContent = v == null ? '' : String(v);
+            return d.innerHTML;
+        };
+
+        a.innerHTML =
+            '<div class="relative h-[92px] bg-surface-alt overflow-hidden">' +
+                '<img src="' + esc(s.image) + '" alt="' + esc(s.heroName) + '" loading="lazy" ' +
+                     'class="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-500"/>' +
+                '<span class="absolute bottom-1.5 left-1.5 bg-surface/90 backdrop-blur-sm border border-border rounded-full px-2 py-0.5 font-caption text-caption text-text-muted">' +
+                    esc(s.province) + '</span>' +
+            '</div>' +
+            '<div class="p-3 flex flex-col gap-1">' +
+                '<div class="flex items-baseline gap-1.5 flex-wrap">' +
+                    '<span class="font-card-title text-card-title text-text-primary">' + esc(s.name) + '</span>' +
+                    '<span class="font-caption text-caption text-primary truncate">' + esc(s.heroName) + '</span>' +
+                '</div>' +
+                '<p class="font-caption text-caption text-text-muted leading-relaxed line-clamp-3">' + esc(s.description) + '</p>' +
+                '<div class="flex items-center gap-2 pt-1.5 mt-0.5 border-t border-border font-caption text-caption text-text-muted">' +
+                    '<span>관광지 <span class="text-text-primary font-semibold">' + esc(s.attractionCount) + '</span></span>' +
+                    (s.shopCount > 0
+                        ? '<span class="text-sage">· 착한가격 <span class="font-semibold">' + esc(s.shopCount) + '</span></span>'
+                        : '') +
+            '</div></div>';
+        return a;
+    }
+
+    /** 이미 띄운 지역 — 같은 곳이 다시 나오지 않게 서버에 알려준다 */
+    function loadedSigCds() {
+        return Array.from(document.querySelectorAll('#spotlight-list .spotlight-card'))
+            .map((c) => c.getAttribute('data-sig-cd'))
+            .filter(Boolean);
+    }
+
+    async function loadMoreSpotlight() {
+        if (spotlightLoading || spotlightDone) return;
+        const list = document.getElementById('spotlight-list');
+        const status = document.getElementById('spotlight-status');
+        if (!list) return;
+
+        spotlightLoading = true;
+        try {
+            const exclude = loadedSigCds();
+            const qs = '?count=' + SPOTLIGHT_PAGE + (exclude.length ? '&exclude=' + exclude.join(',') : '');
+            const res = await fetch('/api/spotlight' + qs);
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            const items = await res.json();
+
+            if (!items.length) {
+                spotlightDone = true;
+                if (status) status.textContent = '숨은 여행지를 모두 둘러봤어요';
+                return;
             }
-        });
+            items.forEach((s) => list.appendChild(spotlightCard(s)));
+        } catch (e) {
+            if (status) status.textContent = '불러오지 못했어요';
+        } finally {
+            spotlightLoading = false;
+        }
+    }
+
+    function initSpotlight() {
+        const scroller = document.getElementById('spotlight-scroll');
+        const sentinel = document.getElementById('spotlight-sentinel');
+        if (!scroller || !sentinel) return;
+
+        // 감지점이 보이면 다음 페이지를 이어붙인다
+        if ('IntersectionObserver' in window) {
+            new IntersectionObserver((entries) => {
+                if (entries.some((e) => e.isIntersecting)) loadMoreSpotlight();
+            }, { root: scroller, rootMargin: '120px' }).observe(sentinel);
+        } else {
+            // 폴백: 스크롤이 끝에 가까워지면 로드
+            scroller.addEventListener('scroll', () => {
+                if (scroller.scrollTop + scroller.clientHeight >= scroller.scrollHeight - 120) {
+                    loadMoreSpotlight();
+                }
+            });
+        }
     }
 
     /* ---------- 무작위로 한 곳 보기 (룰렛) ----------
