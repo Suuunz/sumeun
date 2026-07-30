@@ -30,6 +30,45 @@
                     <span class="font-caption text-caption text-text-primary">지역을 눌러보세요</span>
                 </div>
 
+                <!-- ===== 오늘의 숨은 여행지 =====
+                     지도(세로로 긴 비율) 왼쪽에 생기는 여백을 채운다.
+                     지도는 랭킹이 없어 시작점이 없는데, 이 카드가 첫 진입점이 된다.
+                     지역을 고르면 map.js 가 숨긴다(지도에 집중). -->
+                <aside id="map-spotlight" th:if="${!spotlights.isEmpty()}"
+                       class="hidden xl:flex absolute left-card-padding top-24 bottom-card-padding w-[260px] flex-col gap-3 pointer-events-none transition-opacity duration-300">
+                    <div class="flex items-center gap-1.5 pointer-events-auto">
+                        <span class="material-symbols-outlined text-primary text-[18px]">explore</span>
+                        <span class="font-card-title text-card-title text-text-primary">오늘의 숨은 여행지</span>
+                    </div>
+
+                    <a th:each="s : ${spotlights}" th:href="@{/region(sigCd=${s.sigCd})}"
+                       class="pointer-events-auto group bg-surface border-2 border-border rounded-xl overflow-hidden shadow-sm hover:border-primary hover:-translate-y-[2px] transition-all duration-300">
+                        <div class="relative aspect-[4/3] bg-surface-alt overflow-hidden">
+                            <img th:src="${s.image}" th:alt="${s.name}" loading="lazy"
+                                 class="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-500"/>
+                            <span class="absolute bottom-2 left-2 bg-surface/90 backdrop-blur-sm border border-border rounded-full px-2 py-0.5 font-caption text-caption text-text-muted"
+                                  th:text="${s.province}">경상북도</span>
+                        </div>
+                        <div class="p-3 flex flex-col gap-1.5">
+                            <span class="font-card-title text-card-title text-text-primary" th:text="${s.name}">영양군</span>
+                            <span class="font-caption text-caption text-text-muted line-clamp-1"
+                                  th:text="${s.highlight}">대표 관광지</span>
+                            <div class="flex items-center gap-2 pt-1 border-t border-border font-caption text-caption text-text-muted">
+                                <span>관광지 <span class="text-text-primary font-semibold" th:text="${s.attractionCount}">24</span></span>
+                                <span th:if="${s.shopCount > 0}" class="text-sage">
+                                    · 착한가격 <span class="font-semibold" th:text="${s.shopCount}">11</span>
+                                </span>
+                            </div>
+                        </div>
+                    </a>
+
+                    <button type="button" id="spotlight-refresh"
+                            class="pointer-events-auto self-start inline-flex items-center gap-1 font-caption text-caption text-text-muted hover:text-primary transition-colors">
+                        <span class="material-symbols-outlined text-[16px]">refresh</span>
+                        다른 곳 보기
+                    </button>
+                </aside>
+
                 <!-- 지역 검색 자동완성: 우상단 -->
                 <div class="absolute top-card-padding right-card-padding w-64" id="region-search">
                     <div class="relative">

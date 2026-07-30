@@ -143,6 +143,7 @@
             const data = await res.json();
             fillPanel(data, sigCd);
             openPanel();
+            showSpotlight(false);   // 지역을 골랐으면 지도에 집중
         } catch (err) {
             console.error('[map] 지역 정보 로드 실패:', err);
         }
@@ -210,6 +211,7 @@
         panel.classList.remove('open');
         svg.querySelectorAll('.sig-path.selected').forEach((p) => p.classList.remove('selected'));
         resetZoom();
+        showSpotlight(true);   // 선택 해제 → 다시 추천을 보여준다
     }
 
     /* ---------- 검색 자동완성 ---------- */
@@ -235,6 +237,53 @@
         });
         document.addEventListener('click', (e) => {
             if (!box.contains(e.target)) list.classList.add('hidden');
+        });
+    }
+
+    /* ---------- 오늘의 숨은 여행지 ----------
+       지역을 고르기 전 왼쪽 여백을 채운다. 지역을 고르면 지도에 집중하도록 숨긴다. */
+    function spotlightEl() {
+        return document.getElementById('map-spotlight');
+    }
+
+    function showSpotlight(show) {
+        const el = spotlightEl();
+        if (!el) return;
+        el.style.opacity = show ? '' : '0';
+        el.style.visibility = show ? '' : 'hidden';
+    }
+
+    function initSpotlight() {
+        const btn = document.getElementById('spotlight-refresh');
+        if (!btn) return;
+        btn.addEventListener('click', async () => {
+            const el = spotlightEl();
+            const cards = el ? el.querySelectorAll('a') : [];
+            btn.disabled = true;
+            try {
+                const res = await fetch('/api/spotlight?count=' + cards.length);
+                if (!res.ok) return;
+                const list = await res.json();
+                list.forEach((s, i) => {
+                    const card = cards[i];
+                    if (!card || !s) return;
+                    card.href = '/region?sigCd=' + s.sigCd;
+                    const img = card.querySelector('img');
+                    if (img) { img.src = s.image; img.alt = s.name; }
+                    const spans = card.querySelectorAll('span');
+                    // [0]=시도 배지, [1]=지역명, [2]=대표 관광지
+                    if (spans[0]) spans[0].textContent = s.province;
+                    if (spans[1]) spans[1].textContent = s.name;
+                    if (spans[2]) spans[2].textContent = s.highlight || '';
+                    const counts = card.querySelectorAll('.font-semibold');
+                    if (counts[0]) counts[0].textContent = s.attractionCount;
+                    if (counts[1]) counts[1].textContent = s.shopCount;
+                });
+            } catch (e) {
+                /* 실패하면 기존 카드를 그대로 둔다 */
+            } finally {
+                btn.disabled = false;
+            }
         });
     }
 
@@ -333,6 +382,7 @@
         if (!svg || !panel) return;
 
         initSearch();
+        initSpotlight();
         await renderMap();
 
         const closeBtn = document.getElementById('panel-close');

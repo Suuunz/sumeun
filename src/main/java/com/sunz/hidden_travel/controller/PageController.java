@@ -24,19 +24,25 @@ public class PageController {
 
     private static final String DEFAULT_SIG = "47170"; // 안동시
 
+    /** 지도 왼쪽에 띄울 스포트라이트 카드 수 */
+    private static final int SPOTLIGHT_COUNT = 2;
+
     private final DummyRegionData regionData;
     private final RegionQueryService regionQueryService;
     private final com.sunz.hidden_travel.user.CurrentUserService currentUserService;
+    private final com.sunz.hidden_travel.service.SpotlightService spotlightService;
 
     /** 카카오맵 JavaScript 키 (출발지 역지오코딩용, 없으면 목적지만 길찾기) */
     @Value("${kakao.js.key:}")
     private String kakaoJsKey;
 
     public PageController(DummyRegionData regionData, RegionQueryService regionQueryService,
-                          com.sunz.hidden_travel.user.CurrentUserService currentUserService) {
+                          com.sunz.hidden_travel.user.CurrentUserService currentUserService,
+                          com.sunz.hidden_travel.service.SpotlightService spotlightService) {
         this.regionData = regionData;
         this.regionQueryService = regionQueryService;
         this.currentUserService = currentUserService;
+        this.spotlightService = spotlightService;
     }
 
     private RegionSummary toSummary(RegionBundle b) {
@@ -70,6 +76,8 @@ public class PageController {
     @GetMapping("/map")
     public String map(Model model) {
         model.addAttribute("regionOptions", regionData.options());
+        // 지역을 고르기 전 왼쪽 여백을 채우는 '오늘의 숨은 여행지'
+        model.addAttribute("spotlights", spotlightService.pick(SPOTLIGHT_COUNT));
         return "map";
     }
 

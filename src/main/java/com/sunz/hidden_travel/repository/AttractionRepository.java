@@ -23,4 +23,20 @@ public interface AttractionRepository extends JpaRepository<Attraction, Long> {
     /** 시군구별 관광지 수 — 챗봇 카탈로그용 (row: [sigCd, count]) */
     @Query("select a.sigCd, count(a) from Attraction a group by a.sigCd")
     List<Object[]> countBySigCd();
+
+    /**
+     * '숨은 여행지' 후보 시군구 — 광역시·경기·제주를 뺀 지역 중
+     * 보여줄 관광지가 일정 수 이상 쌓인 곳.
+     * (인기도 지표가 없어 "덜 알려진 곳"을 이렇게 근사한다)
+     */
+    @Query("""
+            select a.sigCd from Attraction a
+            where substring(a.sigCd, 1, 2) not in :excludedSido
+            group by a.sigCd
+            having count(a) >= :minCount
+            """)
+    List<String> findHiddenCandidateSigCds(List<String> excludedSido, long minCount);
+
+    /** 이미지가 있는 관광지 (스포트라이트 카드 사진용) */
+    List<Attraction> findBySigCdAndImageIsNotNull(String sigCd);
 }
