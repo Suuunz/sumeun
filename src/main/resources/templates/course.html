@@ -105,9 +105,8 @@
 <form id="save-form" th:action="@{/course/save}" method="post" class="hidden">
     <input type="hidden" name="sigCd" th:value="${data.sigCd}"/>
     <input type="hidden" name="courseName" id="f-courseName"/>
-    <input type="hidden" name="totalPlaces" id="f-totalPlaces"/>
-    <input type="hidden" name="goodPriceCount" id="f-goodPriceCount"/>
-    <input type="hidden" name="itemNames" id="f-itemNames"/>
+    <!-- 경유지 전체를 JSON 으로 보낸다: [{name,type,sage}, ...] (장소 수·착한가격업소 수는 서버가 집계) -->
+    <input type="hidden" name="itemsJson" id="f-itemsJson"/>
 </form>
 
 <script th:src="@{/js/course.js}"></script>

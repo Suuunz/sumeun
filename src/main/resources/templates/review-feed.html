@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html class="light" lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Sumeun · 후기 둘러보기')}"></head>
+<body class="bg-background text-text-primary font-body-main antialiased min-h-screen flex flex-col">
+
+<header th:replace="~{fragments/layout :: header}"></header>
+
+<main class="flex-1 pt-8 pb-section-gap px-4 md:px-section-gap max-w-container-max mx-auto w-full">
+
+    <!-- 1) 제목 -->
+    <section class="mb-section-gap fade-up">
+        <h1 class="font-display-title text-display-title text-text-primary mb-2">후기 둘러보기</h1>
+        <p class="font-body-main text-body-main text-text-muted">
+            다른 여행자들이 다녀온 숨은 지역들이에요. 마음에 드는 곳은 코스로 만들어보세요.
+        </p>
+    </section>
+
+    <!-- 2) 후기 카드 -->
+    <section th:if="${!reviews.isEmpty()}"
+             class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 stagger-fade-in">
+        <a th:each="r : ${reviews}" th:href="@{'/review/' + ${r.reviewId}}"
+           class="group bg-surface border border-border rounded-xl overflow-hidden flex flex-col hover:-translate-y-[2px] hover:border-outline transition-all duration-300">
+
+            <!-- 대표 사진 (없으면 자리표시) -->
+            <div class="relative aspect-[4/3] bg-surface-alt overflow-hidden">
+                <img th:if="${r.coverPhoto != null}" th:src="${r.coverPhoto}" th:alt="${r.courseTitle}"
+                     class="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500"
+                     loading="lazy"/>
+                <div th:if="${r.coverPhoto == null}" class="absolute inset-0 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-text-muted text-[32px]">photo_camera</span>
+                </div>
+                <!-- 사진 장수 -->
+                <span th:if="${r.photoCount > 1}"
+                      class="absolute bottom-2 right-2 bg-surface/90 backdrop-blur-sm border border-border rounded-full px-2 py-0.5 font-caption text-caption text-text-primary">
+                    <span th:text="${r.photoCount}">3</span>장
+                </span>
+            </div>
+
+            <!-- 본문 -->
+            <div class="p-card-padding flex flex-col gap-3 flex-1">
+                <div class="flex flex-col gap-1">
+                    <span class="font-caption text-caption text-primary" th:text="${r.regionLabel}">경상북도 안동시</span>
+                    <h2 class="font-card-title text-card-title text-text-primary line-clamp-1" th:text="${r.courseTitle}">코스명</h2>
+                </div>
+                <p class="font-body-main text-caption text-text-muted line-clamp-3 flex-1" th:text="${r.excerpt}">후기 요약</p>
+                <div class="flex items-center justify-between border-t border-border pt-3 font-caption text-caption text-text-muted">
+                    <span class="flex items-center gap-1">
+                        <span class="material-symbols-outlined text-[16px]">person</span>
+                        <span th:text="${r.nickname}">여행자</span>
+                    </span>
+                    <span th:text="${r.createdAt}">2026.07.30</span>
+                </div>
+            </div>
+        </a>
+    </section>
+
+    <!-- 3) 빈 상태 -->
+    <section th:if="${reviews.isEmpty()}"
+             class="border-2 border-dashed border-outline-variant rounded-xl p-10 flex flex-col items-center text-center gap-4 fade-up">
+        <span class="material-symbols-outlined text-text-muted text-[40px]">rate_review</span>
+        <p class="font-body-main text-body-main text-text-muted">
+            아직 공개된 후기가 없어요.<br/>첫 후기를 남겨 다른 여행자에게 지역을 알려주세요.
+        </p>
+        <a th:href="@{/my/courses}" class="btn-primary">내 코스에서 후기 쓰기</a>
+    </section>
+
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

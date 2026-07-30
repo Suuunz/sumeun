@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html class="light" lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Sumeun · 내 코스')}"></head>
+<body class="bg-background text-text-primary font-body-main antialiased min-h-screen flex flex-col">
+
+<header th:replace="~{fragments/layout :: header}"></header>
+
+<main class="flex-1 pt-8 pb-section-gap px-4 md:px-section-gap max-w-container-max mx-auto w-full">
+
+    <!-- 1) 제목 -->
+    <section class="mb-section-gap fade-up">
+        <h1 class="font-display-title text-display-title text-text-primary mb-2">내 코스</h1>
+        <p class="font-body-main text-body-main text-text-muted">
+            직접 만든 코스예요. 다녀오셨다면 후기를 남겨 다른 여행자에게 알려주세요.
+        </p>
+    </section>
+
+    <!-- 2) 코스 목록 -->
+    <section th:if="${!courses.isEmpty()}" class="grid grid-cols-1 md:grid-cols-2 gap-4 stagger-fade-in">
+        <article th:each="c : ${courses}"
+                 class="bg-surface border border-border rounded-xl p-card-padding flex flex-col gap-4 hover:border-outline transition-colors">
+
+            <!-- 지역 · 코스명 · 저장일 -->
+            <div class="flex items-start justify-between gap-3">
+                <div class="flex flex-col gap-1 min-w-0">
+                    <span class="font-caption text-caption text-text-muted" th:text="${c.regionLabel}">경상북도 안동시</span>
+                    <h2 class="font-card-title text-card-title text-text-primary truncate" th:text="${c.title}">코스명</h2>
+                </div>
+                <span class="font-caption text-caption text-text-muted shrink-0" th:text="${c.createdAt}">2026.07.30</span>
+            </div>
+
+            <!-- 경유지 칩 -->
+            <div class="flex flex-wrap gap-2">
+                <span th:each="name : ${c.stopNames}" class="chip" th:text="${name}">지점</span>
+            </div>
+
+            <!-- 지표 -->
+            <div class="flex items-center gap-4 border-t border-border pt-4 mt-auto">
+                <span class="font-caption text-caption text-text-muted">
+                    총 <span class="font-semibold text-text-primary" th:text="${c.stopCount}">4</span>곳
+                </span>
+                <span th:if="${c.goodPriceCount > 0}" class="badge-sage">
+                    착한가격업소 <span th:text="${c.goodPriceCount}">2</span>곳
+                </span>
+            </div>
+
+            <!-- 액션: 후기 쓰기 / 후기 보기 -->
+            <div class="flex flex-col sm:flex-row gap-2">
+                <a th:if="${!c.hasReview()}" th:href="@{/review/new(courseId=${c.courseId})}" class="btn-primary flex-1">
+                    <span class="material-symbols-outlined text-[20px]">edit_note</span>
+                    후기 쓰기
+                </a>
+                <a th:if="${c.hasReview()}" th:href="@{'/review/' + ${c.reviewId}}" class="btn-primary flex-1">
+                    <span class="material-symbols-outlined text-[20px]">photo_library</span>
+                    후기 보기
+                </a>
+                <a th:href="@{/region(sigCd=${c.sigCd})}" class="btn-secondary flex-1">지역 다시 보기</a>
+            </div>
+        </article>
+    </section>
+
+    <!-- 3) 빈 상태 -->
+    <section th:if="${courses.isEmpty()}"
+             class="border-2 border-dashed border-outline-variant rounded-xl p-10 flex flex-col items-center text-center gap-4 fade-up">
+        <span class="material-symbols-outlined text-text-muted text-[40px]">add_location_alt</span>
+        <p class="font-body-main text-body-main text-text-muted">
+            아직 저장한 코스가 없어요.<br/>지도에서 지역을 골라 첫 코스를 만들어보세요.
+        </p>
+        <a th:href="@{/map}" class="btn-primary">지도로 가기</a>
+    </section>
+
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

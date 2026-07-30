@@ -31,8 +31,28 @@ spring:
     console:
       enabled: true
 
+  # ----- 후기 사진 업로드 (multipart) -----
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 60MB   # 장당 10MB × 최대 5장 + 여유
+
 server:
   port: 8080
+  servlet:
+    session:
+      # 세션 id 를 URL(;jsessionid=)에 붙이지 않는다.
+      # 후기 공유 링크를 복사·전달할 때 세션이 함께 새어나가는 것을 막는다.
+      tracking-modes: cookie
+
+# ----- 업로드 저장소 (LocalImageStorage / WebConfig) -----
+# S3 등으로 옮길 때는 ImageStorage 구현만 교체하면 된다.
+app:
+  upload:
+    dir: ./uploads          # 실제 파일이 저장되는 디렉터리 (gitignore 대상)
+    url-prefix: /uploads    # 웹에서 접근하는 경로
+
+
 
 # tour.api.key 는 커밋하지 않는다(공개 저장소 노출 방지).
 # 주입 방법(둘 중 하나):

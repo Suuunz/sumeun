@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html class="light" lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Sumeun · 후기 쓰기')}"></head>
+<body class="bg-background text-text-primary font-body-main antialiased min-h-screen flex flex-col">
+
+<header th:replace="~{fragments/layout :: header}"></header>
+
+<main class="flex-1 pt-8 pb-section-gap px-4 max-w-[760px] mx-auto w-full">
+
+    <!-- 되돌아가기 -->
+    <div class="mb-8 fade-up">
+        <a th:href="@{/my/courses}" class="inline-flex items-center text-text-muted hover:text-primary transition-colors">
+            <span class="material-symbols-outlined mr-2">arrow_back</span>
+            내 코스로 돌아가기
+        </a>
+    </div>
+
+    <!-- 대상 코스 요약 -->
+    <section class="bg-surface border border-border rounded-xl p-card-padding mb-section-gap fade-up">
+        <span class="font-caption text-caption text-text-muted" th:text="${regionLabel}">경상북도 안동시</span>
+        <h1 class="font-section-title text-section-title text-text-primary mt-1 mb-4" th:text="${courseTitle}">코스명</h1>
+        <div class="flex flex-wrap gap-2">
+            <span th:each="name : ${stopNames}" class="chip" th:text="${name}">지점</span>
+        </div>
+    </section>
+
+    <form th:action="@{/review}" method="post" enctype="multipart/form-data"
+          class="flex flex-col gap-section-gap fade-up" id="review-form">
+        <input type="hidden" name="courseId" th:value="${courseId}"/>
+
+        <!-- 1) 사진 -->
+        <section class="flex flex-col gap-4">
+            <div>
+                <h2 class="font-card-title text-card-title text-text-primary mb-1">여행 사진</h2>
+                <p class="font-caption text-caption text-text-muted">최대 5장 · 장당 10MB 까지 (jpg, png, gif, webp)</p>
+            </div>
+
+            <!-- 이미 올린 사진(수정 진입 시) -->
+            <div th:if="${!existingPhotos.isEmpty()}" class="flex flex-col gap-2">
+                <span class="font-caption text-caption text-text-muted">이미 올린 사진</span>
+                <div class="grid grid-cols-3 sm:grid-cols-5 gap-2">
+                    <img th:each="p : ${existingPhotos}" th:src="${p}" alt="올린 사진"
+                         class="w-full aspect-square object-cover rounded-lg border border-border"/>
+                </div>
+            </div>
+
+            <!-- 업로드 영역 -->
+            <label for="photos"
+                   class="border-2 border-dashed border-outline-variant rounded-xl p-8 flex flex-col items-center text-center gap-2 cursor-pointer hover:border-primary transition-colors">
+                <span class="material-symbols-outlined text-text-muted text-[32px]">add_photo_alternate</span>
+                <span class="font-body-main text-body-main text-text-primary">사진을 선택하세요</span>
+                <span class="font-caption text-caption text-text-muted">여러 장을 한 번에 고를 수 있어요</span>
+            </label>
+            <input id="photos" name="photos" type="file" accept="image/*" multiple class="hidden"/>
+
+            <!-- 선택한 사진 미리보기(review.js가 채움) -->
+            <div id="photo-preview" class="hidden grid grid-cols-3 sm:grid-cols-5 gap-2"></div>
+        </section>
+
+        <!-- 2) 줄글 후기 -->
+        <section class="flex flex-col gap-4">
+            <div>
+                <h2 class="font-card-title text-card-title text-text-primary mb-1">후기</h2>
+                <p class="font-caption text-caption text-text-muted">어떤 점이 좋았는지, 다음 사람에게 알려주고 싶은 것을 적어주세요.</p>
+            </div>
+            <textarea name="content" id="content" rows="10" required
+                      placeholder="예) 월영교는 해질 무렵에 가는 게 좋았어요. 근처 찜닭 골목은 평일 저녁에도 자리가 있었습니다."
+                      class="w-full bg-surface border border-border rounded-lg p-4 font-body-main text-body-main text-text-primary placeholder:text-text-muted focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors resize-y"
+                      th:text="${content}"></textarea>
+        </section>
+
+        <!-- 3) 공유 여부 -->
+        <section class="bg-surface border border-border rounded-xl p-card-padding flex items-start gap-3">
+            <input type="checkbox" name="shared" id="shared" value="true" th:checked="${shared}"
+                   class="mt-1 w-5 h-5 rounded border-border text-primary focus:ring-primary shrink-0"/>
+            <label for="shared" class="cursor-pointer">
+                <span class="font-card-title text-card-title text-text-primary block">다른 여행자에게 공개하기</span>
+                <span class="font-caption text-caption text-text-muted">
+                    후기 둘러보기에 노출됩니다. 끄면 나만 볼 수 있어요.
+                </span>
+            </label>
+        </section>
+
+        <!-- 4) 액션 -->
+        <div class="flex flex-col sm:flex-row gap-4">
+            <button type="submit" class="btn-primary flex-1" id="submit-btn">
+                <span class="material-symbols-outlined text-[20px]">check</span>
+                <span th:text="${editing} ? '후기 수정하기' : '후기 저장하기'">후기 저장하기</span>
+            </button>
+            <a th:href="@{/my/courses}" class="btn-secondary flex-1">취소</a>
+        </div>
+    </form>
+
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<script th:src="@{/js/review.js}"></script>
+</body>
+</html>

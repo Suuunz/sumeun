@@ -159,10 +159,15 @@
         if (!btn || !form) return;
         btn.addEventListener('click', () => {
             const items = courseItems();
+            if (items.length === 0) return; // 빈 코스는 저장하지 않는다(버튼도 비활성 상태)
             document.getElementById('f-courseName').value = document.getElementById('course-name-input').value || '나의 코스';
-            document.getElementById('f-totalPlaces').value = String(items.length);
-            document.getElementById('f-goodPriceCount').value = String(items.filter((i) => i.getAttribute('data-type') === 'goodprice').length);
-            document.getElementById('f-itemNames').value = items.map((i) => i.getAttribute('data-name')).join('|');
+            // 경유지를 순서대로 JSON 직렬화 → 서버가 SavedCourseStop 으로 저장
+            document.getElementById('f-itemsJson').value = JSON.stringify(items.map((i) => ({
+                name: i.getAttribute('data-name'),
+                type: i.getAttribute('data-type'),
+                sage: i.getAttribute('data-sage') === 'true'
+            })));
+            btn.disabled = true; // 중복 제출 방지
             form.submit();
         });
     }

@@ -9,6 +9,10 @@ replay_pid*.log
 *.trace.db
 ### 로컬 비밀 설정 (API 키 등, 커밋 금지) ###
 /config/application-secret.yaml
+### 후기 사진 업로드 (LocalImageStorage) ###
+/uploads/
+### Figma 반입용 산출물 (figma-export/_build/export.mjs 로 재생성) ###
+/figma-export/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
