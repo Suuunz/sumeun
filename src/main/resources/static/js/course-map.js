@@ -31,7 +31,7 @@
         return new kakao.maps.CustomOverlay({
             position: pos,
             yAnchor: 0.5,
-            zIndex: 3,
+            zIndex: 4,
             content:
                 '<div style="display:flex;align-items:center;justify-content:center;' +
                 'width:26px;height:26px;border-radius:50%;background:var(--accent);color:#fff;' +
@@ -40,7 +40,10 @@
         });
     }
 
-    /** 두 지점 사이 중간에 진행 방향 화살표를 놓는다 */
+    /**
+     * 두 지점 사이 중간에 진행 방향 화살표를 놓는다.
+     * 선 위에 얹히므로 흰 원판을 깔아 선과 겹쳐도 방향이 읽히게 한다.
+     */
     function arrowOverlay(from, to) {
         const midLat = (from.getLat() + to.getLat()) / 2;
         const midLng = (from.getLng() + to.getLng()) / 2;
@@ -49,10 +52,13 @@
         return new kakao.maps.CustomOverlay({
             position: new kakao.maps.LatLng(midLat, midLng),
             yAnchor: 0.5,
-            zIndex: 2,
+            zIndex: 3,
             content:
-                '<div style="transform:rotate(' + (-deg) + 'deg);color:var(--accent-hover);' +
-                'font-size:18px;line-height:1;text-shadow:0 0 3px #fff,0 0 3px #fff">➤</div>',
+                '<div style="display:flex;align-items:center;justify-content:center;' +
+                'width:20px;height:20px;border-radius:50%;background:#fff;' +
+                'border:2px solid #D08A5D;box-shadow:0 1px 3px rgba(0,0,0,.25)">' +
+                '<div style="transform:rotate(' + (-deg) + 'deg);color:#B9764C;' +
+                'font-size:11px;line-height:1">➤</div></div>',
         });
     }
 
@@ -66,14 +72,28 @@
 
         const positions = list.map((s) => new kakao.maps.LatLng(s.lat, s.lng));
 
-        // 순서대로 잇는 선
+        // 순서대로 잇는 선.
+        // 지도 배경(도로·녹지)에 묻히지 않도록 흰 테두리선을 깔고 그 위에 색선을 얹는다.
+        // 지도에서 경로를 강조할 때 쓰는 방식으로, 어떤 배경 위에서도 선이 살아난다.
         if (positions.length > 1) {
+            const casing = new kakao.maps.Polyline({
+                path: positions,
+                strokeWeight: 9,
+                strokeColor: '#FFFFFF',
+                strokeOpacity: 0.95,
+                strokeStyle: 'solid',
+                zIndex: 1,
+            });
+            casing.setMap(map);
+            overlays.push(casing);
+
             const line = new kakao.maps.Polyline({
                 path: positions,
-                strokeWeight: 3,
+                strokeWeight: 5,
                 strokeColor: '#D08A5D',       // --accent
-                strokeOpacity: 0.9,
+                strokeOpacity: 1,
                 strokeStyle: 'solid',
+                zIndex: 2,
             });
             line.setMap(map);
             overlays.push(line);
