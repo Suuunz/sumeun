@@ -139,6 +139,10 @@
 
         <!-- Nav: 내 코스 · 후기 둘러보기 -->
         <nav class="site-nav">
+            <a th:href="@{/chat}" class="site-nav__link site-nav__link--ai">
+                <span class="material-symbols-outlined">auto_awesome</span>
+                AI 추천
+            </a>
             <a th:if="${currentUser != null}" th:href="@{/my/courses}" class="site-nav__link">
                 <span class="material-symbols-outlined">bookmark</span>
                 내 코스
@@ -253,6 +257,13 @@
         }
         .site-nav__link:hover { background: var(--accent-soft); color: var(--accent); }
         .site-nav__link .material-symbols-outlined { font-size: 18px; }
+        /* AI 추천은 진입점이라 한 단계 강조한다 */
+        .site-nav__link--ai {
+            color: var(--accent);
+            background: var(--accent-soft);
+            font-weight: 600;
+        }
+        .site-nav__link--ai:hover { background: var(--accent); color: #fff; }
         /* 로그아웃 버튼도 링크와 같은 모양으로 */
         button.site-nav__link { border: none; background: none; cursor: pointer; }
         .site-account {

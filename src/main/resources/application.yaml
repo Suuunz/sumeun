@@ -61,6 +61,13 @@ app:
 
 
 
+# ----- AI 여행 상담(Gemini) -----
+# 키는 커밋하지 않는다. ./config/application-secret.yaml 에 gemini.api.key 를 넣는다.
+gemini:
+  api:
+    model: gemini-2.0-flash   # 무료 등급 모델. 사용 가능한 모델이 바뀌면 여기만 수정
+    timeout-seconds: 30
+
 # tour.api.key 는 커밋하지 않는다(공개 저장소 노출 방지).
 # 주입 방법(둘 중 하나):
 #   1) 환경변수 TOUR_API_KEY=... (relaxed binding → tour.api.key)

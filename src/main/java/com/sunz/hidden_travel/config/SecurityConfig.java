@@ -50,7 +50,7 @@ public class SecurityConfig {
                                  "/favicon.ico", "/error").permitAll()
                 // --- 로그인 없이 볼 수 있는 화면 ---
                 .requestMatchers("/", "/signup", "/onboarding", "/map",
-                                 "/region", "/region/**", "/reviews").permitAll()
+                                 "/region", "/region/**", "/reviews", "/chat").permitAll()
                 .requestMatchers(HttpMethod.GET, "/review/*").permitAll()   // 후기 상세(공유 링크)
                 // 코스 만들기는 로그인 없이 둘러보고 담아볼 수 있다(저장할 때만 로그인).
                 // 담은 내용은 course.js 가 sessionStorage 에 보관했다가 로그인 후 복원한다.

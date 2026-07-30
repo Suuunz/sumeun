@@ -19,4 +19,8 @@ public interface AttractionRepository extends JpaRepository<Attraction, Long> {
     /** 관광지가 적재된 시군구 코드 목록(추천 후보 = 실제 보여줄 데이터가 있는 지역) */
     @Query("select distinct a.sigCd from Attraction a")
     List<String> findDistinctSigCd();
+
+    /** 시군구별 관광지 수 — 챗봇 카탈로그용 (row: [sigCd, count]) */
+    @Query("select a.sigCd, count(a) from Attraction a group by a.sigCd")
+    List<Object[]> countBySigCd();
 }

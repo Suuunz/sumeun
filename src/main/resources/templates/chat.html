@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html class="light" lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Sumeun · AI 여행 상담')}"></head>
+<body class="bg-background text-text-primary font-body-main antialiased min-h-screen flex flex-col">
+
+<header th:replace="~{fragments/layout :: header}"></header>
+
+<main class="flex-1 w-full max-w-[760px] mx-auto px-4 pt-6 pb-40 flex flex-col">
+
+    <!-- 제목 -->
+    <section class="mb-5">
+        <h1 class="font-display-title text-display-title text-text-primary mb-2 flex items-center gap-2">
+            <span class="material-symbols-outlined text-primary text-[32px]">auto_awesome</span>
+            AI 여행 상담
+        </h1>
+        <p class="font-body-main text-body-main text-text-muted">
+            어떤 여행을 원하는지 편하게 말해주세요. 숨은여행이 가진 지역·코스 정보로 맞춤 추천을 드려요.
+        </p>
+    </section>
+
+    <!-- API 키 미설정 안내 -->
+    <section th:if="${!aiConfigured}"
+             class="mb-5 bg-surface border-2 rounded-xl p-card-padding" style="border-color: var(--error)">
+        <p class="font-card-title text-card-title mb-2" style="color: var(--error)">AI 키가 설정되지 않았어요</p>
+        <p class="font-caption text-caption text-text-primary leading-relaxed">
+            <code class="bg-surface-alt px-1.5 py-0.5 rounded">config/application-secret.yaml</code> 에 아래를 추가하고 앱을 다시 시작하세요.
+        </p>
+        <pre class="mt-2 bg-surface-alt border border-border rounded-lg p-3 font-caption text-caption overflow-x-auto"><code>gemini:
+  api:
+    key: 발급받은_키</code></pre>
+    </section>
+
+    <!-- 대화 영역 -->
+    <section id="chat-log" class="flex-1 flex flex-col gap-4" aria-live="polite"></section>
+
+    <!-- 첫 진입 안내 + 예시 질문 -->
+    <section id="chat-intro" class="flex flex-col gap-3">
+        <div class="bg-surface border-2 border-border rounded-xl p-card-padding shadow-sm">
+            <p class="font-body-main text-body-main text-text-primary leading-relaxed">
+                안녕하세요. 조용한 곳, 바다, 미식처럼 원하는 분위기를 말해주시면
+                덜 알려진 지역 위주로 골라 드릴게요.
+            </p>
+        </div>
+        <div class="flex flex-wrap gap-2">
+            <button type="button" class="example-chip chip hover:bg-accent-soft hover:text-primary transition-colors cursor-pointer">사람 없는 조용한 바닷가</button>
+            <button type="button" class="example-chip chip hover:bg-accent-soft hover:text-primary transition-colors cursor-pointer">1박 2일 미식 여행</button>
+            <button type="button" class="example-chip chip hover:bg-accent-soft hover:text-primary transition-colors cursor-pointer">역사 유적 둘러보기</button>
+            <button type="button" class="example-chip chip hover:bg-accent-soft hover:text-primary transition-colors cursor-pointer">가을에 걷기 좋은 곳</button>
+        </div>
+    </section>
+
+</main>
+
+<!-- 입력창 (하단 고정) -->
+<div class="fixed bottom-0 left-0 right-0 bg-surface border-t-2 border-border shadow-lg z-50">
+    <form id="chat-form" class="max-w-[760px] mx-auto px-4 py-4 flex items-end gap-3">
+        <textarea id="chat-input" rows="1" required
+                  placeholder="어떤 여행을 원하시나요? (예: 조용한 산속 마을)"
+                  class="flex-1 resize-none max-h-32 bg-surface-alt border-2 border-border rounded-lg px-4 py-3 font-body-main text-body-main text-text-primary placeholder:text-text-muted focus:outline-none focus:border-primary focus:bg-surface transition-colors"></textarea>
+        <button type="submit" id="chat-send" class="btn-primary h-[52px] px-5 shrink-0">
+            <span class="material-symbols-outlined text-[22px]">send</span>
+            <span class="hidden sm:inline">보내기</span>
+        </button>
+    </form>
+</div>
+
+<script th:src="@{/js/chat.js}"></script>
+</body>
+</html>
