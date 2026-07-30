@@ -20,5 +20,7 @@ public record RegionBundle(
         int attractionCount,
         int foodCount,
         int shopCount,
-        int specialtyCount
+        int specialtyCount,
+        Double lat,
+        Double lng
 ) {}

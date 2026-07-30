@@ -48,12 +48,19 @@
                     </div>
                 </div>
 
-                <!-- 무작위로 한 곳 보기: 우하단 -->
-                <button type="button" id="map-shuffle"
-                        class="absolute bottom-card-padding right-card-padding bg-surface border border-border rounded-lg px-6 h-[44px] flex items-center gap-2 hover:bg-surface-alt transition-colors font-body-main text-body-main text-text-primary shadow-sm">
-                    <span class="material-symbols-outlined text-primary">shuffle</span>
-                    무작위로 한 곳 보기
-                </button>
+                <!-- 우하단 액션: AI 추천(주요) + 무작위(보조) -->
+                <div class="absolute bottom-card-padding right-card-padding flex items-center gap-2">
+                    <button type="button" id="map-shuffle"
+                            class="bg-surface border border-border rounded-lg px-4 h-[44px] flex items-center gap-2 hover:bg-surface-alt transition-colors font-body-main text-body-main text-text-primary shadow-sm">
+                        <span class="material-symbols-outlined text-primary text-[20px]">shuffle</span>
+                        무작위
+                    </button>
+                    <button type="button" id="ai-recommend-btn"
+                            class="bg-primary-container hover:bg-accent-hover text-on-primary rounded-lg px-5 h-[44px] flex items-center gap-2 transition-all duration-300 hover:-translate-y-[2px] font-semibold shadow-sm">
+                        <span class="material-symbols-outlined text-[20px]">auto_awesome</span>
+                        AI에게 추천받기
+                    </button>
+                </div>
             </div>
         </section>
 
@@ -111,13 +118,71 @@
     </div>
 </main>
 
+<!-- ===== AI 추천 모달 ===== -->
+<div id="recommend-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
+    <div id="rec-overlay" class="absolute inset-0 bg-black/40"></div>
+    <div class="relative bg-surface border border-border rounded-[12px] w-full max-w-[520px] max-h-[90vh] overflow-y-auto p-8 shadow-xl">
+        <button type="button" id="rec-close" class="absolute top-4 right-4 text-text-muted hover:text-text-primary p-1" aria-label="닫기">
+            <span class="material-symbols-outlined">close</span>
+        </button>
+        <div class="flex items-center gap-2 mb-6">
+            <span class="material-symbols-outlined text-primary">auto_awesome</span>
+            <h2 class="font-section-title text-section-title text-text-primary">AI에게 추천받기</h2>
+        </div>
+
+        <!-- Q1. 여행 취향 (다중 선택) -->
+        <div class="mb-6">
+            <h3 class="font-card-title text-card-title text-text-primary mb-3">어떤 여행을 좋아하세요?</h3>
+            <div class="flex flex-wrap gap-2">
+                <button type="button" class="rec-chip option-card rounded-chip px-4 py-2 font-body-main text-body-main" data-group="styles" data-value="자연·풍경">자연·풍경</button>
+                <button type="button" class="rec-chip option-card rounded-chip px-4 py-2 font-body-main text-body-main" data-group="styles" data-value="미식">미식</button>
+                <button type="button" class="rec-chip option-card rounded-chip px-4 py-2 font-body-main text-body-main" data-group="styles" data-value="역사·문화">역사·문화</button>
+                <button type="button" class="rec-chip option-card rounded-chip px-4 py-2 font-body-main text-body-main" data-group="styles" data-value="조용한 휴식">조용한 휴식</button>
+                <button type="button" class="rec-chip option-card rounded-chip px-4 py-2 font-body-main text-body-main" data-group="styles" data-value="축제·체험">축제·체험</button>
+            </div>
+        </div>
+
+        <!-- Q2. 기분 (단일 선택) -->
+        <div class="mb-6">
+            <h3 class="font-card-title text-card-title text-text-primary mb-3">지금 기분은 어떠세요?</h3>
+            <div class="flex flex-wrap gap-2">
+                <button type="button" class="rec-chip option-card rounded-chip px-4 py-2 font-body-main text-body-main" data-group="mood" data-value="활기차게">활기차게</button>
+                <button type="button" class="rec-chip option-card rounded-chip px-4 py-2 font-body-main text-body-main" data-group="mood" data-value="차분하게">차분하게</button>
+                <button type="button" class="rec-chip option-card rounded-chip px-4 py-2 font-body-main text-body-main" data-group="mood" data-value="지쳐서 쉬고 싶은">지쳐서 쉬고 싶은</button>
+                <button type="button" class="rec-chip option-card rounded-chip px-4 py-2 font-body-main text-body-main" data-group="mood" data-value="새로운 자극이 필요한">새로운 자극이 필요한</button>
+            </div>
+        </div>
+
+        <!-- Q3. 자유 서술 (선택) -->
+        <div class="mb-6">
+            <h3 class="font-card-title text-card-title text-text-primary mb-3">어떤 여행을 떠나고 싶으신가요? <span class="font-caption text-caption text-text-muted">(선택)</span></h3>
+            <textarea id="rec-freetext" rows="3"
+                      class="w-full bg-surface border border-border rounded-lg p-3 font-body-main text-body-main text-text-primary placeholder:text-text-muted focus:outline-none focus:border-primary resize-none"
+                      placeholder="예: 사람 적은 바닷가에서 조용히 쉬고 싶어요"></textarea>
+        </div>
+
+        <p id="rec-error" class="hidden mb-3 text-caption text-error text-center" style="color: var(--error);">추천할 지역을 찾지 못했어요. 다시 시도해주세요.</p>
+
+        <!-- 하단 액션 -->
+        <div class="flex gap-3 justify-end">
+            <button type="button" id="rec-cancel" class="btn-secondary">닫기</button>
+            <button type="button" id="rec-submit" class="btn-primary">
+                <span id="rec-submit-text">추천받기</span>
+                <span id="rec-spinner" class="spinner hidden"></span>
+            </button>
+        </div>
+    </div>
+</div>
+
 <!-- 공통 푸터 -->
 <footer th:replace="~{fragments/layout :: footer}"></footer>
 
 <!-- 지도 라이브러리(필요 모듈만 자체 호스팅) + 초기화 -->
+<script th:src="@{/js/geo.js}"></script>
 <script th:src="@{/js/d3-array.min.js}"></script>
 <script th:src="@{/js/d3-geo.min.js}"></script>
 <script th:src="@{/js/topojson-client.min.js}"></script>
 <script th:src="@{/js/map.js}"></script>
+<script th:src="@{/js/recommend.js}"></script>
 </body>
 </html>

@@ -5,6 +5,7 @@ import com.sunz.hidden_travel.controller.dto.RegionMetric;
 import com.sunz.hidden_travel.controller.dto.RegionSummary;
 import com.sunz.hidden_travel.service.DummyRegionData;
 import com.sunz.hidden_travel.service.RegionQueryService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,6 +26,10 @@ public class PageController {
 
     private final DummyRegionData regionData;
     private final RegionQueryService regionQueryService;
+
+    /** 카카오맵 JavaScript 키 (출발지 역지오코딩용, 없으면 목적지만 길찾기) */
+    @Value("${kakao.js.key:}")
+    private String kakaoJsKey;
 
     public PageController(DummyRegionData regionData, RegionQueryService regionQueryService) {
         this.regionData = regionData;
@@ -79,6 +84,9 @@ public class PageController {
         RegionBundle b = regionQueryService.bundle(cd);
         model.addAttribute("sigCd", cd);
         model.addAttribute("region", toSummary(b));
+        model.addAttribute("destLat", b.lat());
+        model.addAttribute("destLng", b.lng());
+        model.addAttribute("kakaoJsKey", kakaoJsKey);
         model.addAttribute("heroDesc", b.aiSummary());
         model.addAttribute("metrics", List.of(
                 new RegionMetric(String.valueOf(b.attractionCount()), "관광 콘텐츠 수"),

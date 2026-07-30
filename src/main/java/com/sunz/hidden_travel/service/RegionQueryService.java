@@ -109,7 +109,9 @@ public class RegionQueryService {
         return new RegionBundle(sigCd, name, province, dataReady, aiSummary,
                 specialtyNames, shopDtos, briefCourse(courses, attractions, foods),
                 recommendedCourses(name, courses, attractions, foods),
-                attractionCount, foodCount, shopCount, specialtyCount);
+                attractionCount, foodCount, shopCount, specialtyCount,
+                region != null ? region.getLat() : null,
+                region != null ? region.getLng() : null);
     }
 
     /* 패널 "추천 반일 코스": 여행코스 경유지 우선, 없으면 관광지+맛집 간이 조합 */

@@ -126,6 +126,9 @@
     }
 
     /* ---------- 지역 선택 → 패널 ---------- */
+    // 외부(추천 모달 등)에서 지역 선택 흐름을 재사용할 수 있게 노출
+    window.selectRegion = selectRegion;
+
     async function selectRegion(sigCd) {
         if (!sigCd) return;
         svg.querySelectorAll('.sig-path.selected').forEach((p) => p.classList.remove('selected'));
@@ -259,6 +262,11 @@
 
         const shuffle = document.getElementById('map-shuffle');
         if (shuffle) shuffle.addEventListener('click', pickRandom);
+
+        // 지도 진입 시 현재 위치 수집(부가 기능 · 거부해도 무시)
+        if (typeof window.getCurrentPositionSafe === 'function') {
+            window.getCurrentPositionSafe();
+        }
     }
 
     if (document.readyState === 'loading') {

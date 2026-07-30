@@ -19,7 +19,15 @@
     <section class="flex flex-col md:flex-row justify-between items-start gap-8 mb-section-gap fade-up">
         <div class="flex-1">
             <span class="font-caption text-caption text-text-muted block mb-2" th:text="${region.province}">경상북도</span>
-            <h1 class="font-display-title text-[48px] leading-tight text-text-primary mb-4" th:text="${region.name}">안동시</h1>
+            <div class="flex items-center gap-3 mb-4 flex-wrap">
+                <h1 class="font-display-title text-[48px] leading-tight text-text-primary" th:text="${region.name}">안동시</h1>
+                <button type="button" data-route-btn
+                        th:attr="data-dest-lat=${destLat},data-dest-lng=${destLng},data-dest-name=${region.name},data-kakao-key=${kakaoJsKey}"
+                        class="btn-secondary self-center">
+                    <span class="material-symbols-outlined text-[18px]">directions</span>
+                    길찾기
+                </button>
+            </div>
             <p class="font-body-main text-body-main text-on-surface-variant max-w-2xl" th:text="${heroDesc}">지역 소개</p>
         </div>
         <!-- 지도 썸네일 자리표시자 (id: map-thumb) -->
@@ -121,5 +129,7 @@
 <footer th:replace="~{fragments/layout :: footer}"></footer>
 
 <script th:src="@{/js/region-detail.js}"></script>
+<script th:src="@{/js/geo.js}"></script>
+<script th:src="@{/js/kakao-route.js}"></script>
 </body>
 </html>
