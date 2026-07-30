@@ -44,6 +44,9 @@ public class TourSyncService {
     private static final int SINGLE_RADIUS = 20000;   // locationBased 최대 반경(m)
     private static final long CALL_DELAY_MS = 150;    // rate limit 회피
 
+    /** 여행코스 경유지(코스당 호출 1회)를 채울 최소 잔여 예산 — 목록 적재를 우선한다 */
+    private static final int COURSE_DETAIL_MIN_REMAINING = 150;
+
     /** 시도 코드(SIG_CD 앞 2자리) → TourAPI areaCode */
     private static final Map<String, Integer> SIDO_TO_AREA = Map.ofEntries(
             Map.entry("11", 1), Map.entry("28", 2), Map.entry("30", 3), Map.entry("27", 4),
@@ -84,6 +87,7 @@ public class TourSyncService {
         Counter c = new Counter();
         for (int type : CONTENT_TYPES) {
             for (int page = 1; page <= MAX_PAGES; page++) {
+                if (client.remainingCalls() <= 0) { c.stoppedByBudget = true; break; }
                 TourApiClient.TourPage p = client.locationBasedList(
                         region.getLng(), region.getLat(), SINGLE_RADIUS, type, page, NUM_OF_ROWS);
                 if (p.items().isEmpty()) break;
@@ -107,31 +111,40 @@ public class TourSyncService {
        시도 단위 (전체 배치) — areaBasedList + 좌표 판정
        ========================================================= */
     public Map<String, Object> syncSido(int areaCode) {
-        String sidoPrefix = sidoPrefixOf(areaCode);
         Counter c = new Counter();
         for (int type : CONTENT_TYPES) {
-            for (int page = 1; page <= MAX_PAGES; page++) {
-                TourApiClient.TourPage p = client.areaBasedList(areaCode, type, page, NUM_OF_ROWS);
-                if (p.items().isEmpty()) break;
-                for (JsonNode item : p.items()) {
-                    double[] xy = coord(item);
-                    if (xy == null) { c.unmapped++; continue; }
-                    String sigCd = geometry.resolveSigCd(xy[0], xy[1], sidoPrefix)
-                            .orElseGet(() -> geometry.resolveSigCd(xy[0], xy[1]).orElse(null));
-                    if (sigCd == null) {
-                        c.outside++;
-                        log.debug("[TourSync] 좌표→SIG_CD 실패: {} ({},{})", title(item), xy[0], xy[1]);
-                        continue;
-                    }
-                    upsert(type, item, sigCd, xy, c);
-                }
-                if (p.items().size() < NUM_OF_ROWS) break;
-                sleep();
-            }
+            syncSidoType(areaCode, type, c);
         }
         Map<String, Object> result = summary("area:" + areaCode, c);
         log.info("[TourSync] syncSido {} → {}", areaCode, result);
         return result;
+    }
+
+    /** 시도 1곳의 콘텐츠 유형 1종을 적재한다. 호출 한도가 남지 않으면 즉시 중단. */
+    private void syncSidoType(int areaCode, int type, Counter c) {
+        String sidoPrefix = sidoPrefixOf(areaCode);
+        for (int page = 1; page <= MAX_PAGES; page++) {
+            if (client.remainingCalls() <= 0) {
+                c.stoppedByBudget = true;
+                return;
+            }
+            TourApiClient.TourPage p = client.areaBasedList(areaCode, type, page, NUM_OF_ROWS);
+            if (p.items().isEmpty()) return;
+            for (JsonNode item : p.items()) {
+                double[] xy = coord(item);
+                if (xy == null) { c.unmapped++; continue; }
+                String sigCd = geometry.resolveSigCd(xy[0], xy[1], sidoPrefix)
+                        .orElseGet(() -> geometry.resolveSigCd(xy[0], xy[1]).orElse(null));
+                if (sigCd == null) {
+                    c.outside++;
+                    log.debug("[TourSync] 좌표→SIG_CD 실패: {} ({},{})", title(item), xy[0], xy[1]);
+                    continue;
+                }
+                upsert(type, item, sigCd, xy, c);
+            }
+            if (p.items().size() < NUM_OF_ROWS) return;
+            sleep();
+        }
     }
 
     /** 전국 배치 (17개 시도 순회) */
@@ -141,6 +154,56 @@ public class TourSyncService {
             all.put("area:" + areaCode, syncSido(areaCode));
         }
         return all;
+    }
+
+    /* =========================================================
+       비어 있는 지역 채우기 (호출 한도 안에서)
+       ========================================================= */
+
+    /**
+     * 관광지가 하나도 없는 시군구를 가진 시도만 골라 적재한다.
+     *
+     * 호출 예산이 하루 1000회로 제한되므로 유형 우선순위를 두어
+     * <b>관광지를 모든 시도에 먼저 채운 뒤</b> 음식점 → 여행코스 순으로 넓힌다.
+     * (한도가 중간에 소진돼도 "관광지가 빈 지역"이 최대한 줄어든 상태로 끝난다)
+     */
+    public Map<String, Object> syncMissing() {
+        List<String> emptySidos = regionRepository.findSidoPrefixesWithoutAttraction();
+        List<Integer> areas = emptySidos.stream()
+                .map(SIDO_TO_AREA::get)
+                .filter(java.util.Objects::nonNull)
+                .distinct()
+                .toList();
+
+        Map<String, Object> report = new LinkedHashMap<>();
+        report.put("대상 시도", areas);
+        report.put("시작 시점 남은 호출", client.remainingCalls());
+
+        Counter total = new Counter();
+        boolean budgetOut = false;
+        for (int type : CONTENT_TYPES) {          // 관광지 → 음식점 → 여행코스 순
+            for (int areaCode : areas) {
+                if (client.remainingCalls() <= 0) { budgetOut = true; break; }
+                syncSidoType(areaCode, type, total);
+            }
+            if (budgetOut) break;
+        }
+
+        report.put("적재 결과", summary("missing", total));
+        report.put("사용한 호출", client.usedCalls());
+        report.put("남은 호출", client.remainingCalls());
+        report.put("한도 소진으로 중단", budgetOut || total.stoppedByBudget);
+        log.info("[TourSync] syncMissing → {}", report);
+        return report;
+    }
+
+    /** 현재 호출 예산 상태만 조회(호출 없음) */
+    public Map<String, Object> budget() {
+        Map<String, Object> m = new LinkedHashMap<>();
+        m.put("1일 한도", client.dailyLimit());
+        m.put("오늘 사용", client.usedCalls());
+        m.put("남은 호출", client.remainingCalls());
+        return m;
     }
 
     /* =========================================================
@@ -192,8 +255,15 @@ public class TourSyncService {
         }
     }
 
-    /** 여행코스 경유지(detailInfo2) — best-effort */
+    /**
+     * 여행코스 경유지(detailInfo2) — best-effort.
+     * 코스 1건마다 호출 1회를 더 쓰므로, 남은 예산이 넉넉할 때만 채운다.
+     * (경유지는 없어도 코스 자체는 저장되고, 나중에 다시 채울 수 있다)
+     */
     private void fillCoursePoints(TravelCourse tc, String cid) {
+        if (client.remainingCalls() < COURSE_DETAIL_MIN_REMAINING) {
+            return;
+        }
         try {
             List<JsonNode> sub = client.detailInfo(cid, CT_COURSE);
             List<CoursePoint> points = new ArrayList<>();
@@ -278,5 +348,6 @@ public class TourSyncService {
 
     private static final class Counter {
         int attractions, foodPlaces, travelCourses, skipped, outside, unmapped;
+        boolean stoppedByBudget;
     }
 }

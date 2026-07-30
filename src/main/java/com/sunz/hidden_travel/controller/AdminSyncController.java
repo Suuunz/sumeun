@@ -2,6 +2,7 @@ package com.sunz.hidden_travel.controller;
 
 import com.sunz.hidden_travel.goodprice.GoodPriceSyncService;
 import com.sunz.hidden_travel.tour.TourSyncService;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -39,6 +40,23 @@ public class AdminSyncController {
             return sync.syncSido(areaCode);
         }
         return sync.syncAll();
+    }
+
+    /**
+     * 관광지가 비어 있는 지역만 채운다(1일 호출 한도 안에서).
+     * 한도가 소진되면 그 지점에서 멈추고, 다음 날 같은 요청을 다시 보내면 이어서 채운다.
+     *
+     *  - POST /admin/sync/tour/missing
+     */
+    @PostMapping("/tour/missing")
+    public Map<String, Object> tourMissing() {
+        return sync.syncMissing();
+    }
+
+    /** 남은 호출 예산 조회 (API 호출 없음) — GET /admin/sync/tour/budget */
+    @GetMapping("/tour/budget")
+    public Map<String, Object> budget() {
+        return sync.budget();
     }
 
     /**
