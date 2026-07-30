@@ -224,6 +224,7 @@ public class TourSyncService {
                 a.setLat(xy[1]);
                 a.setSourceContentId(cid);
                 a.setImage(firstNonBlank(text(item, "firstimage"), text(item, "firstimage2")));
+                a.setTel(text(item, "tel"));   // 목록 API 에 이미 들어 있어 추가 호출이 들지 않는다
                 attractionRepository.save(a);
                 c.attractions++;
             }

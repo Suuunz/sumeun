@@ -168,26 +168,27 @@ public class RegionQueryService {
 
         List<CandidateItem> attractions = attractionRepository.findBySigCd(sigCd).stream()
                 .limit(CANDIDATE_LIMIT)
+                // 이미지는 목록 API 에서 이미 받아 저장해둔 값(추가 호출 없음)
                 .map(a -> new CandidateItem(String.valueOf(a.getId()), "attraction", a.getName(),
-                        a.getAddr(), a.getType() != null ? a.getType() : "관광지", false, null))
+                        a.getAddr(), a.getType() != null ? a.getType() : "관광지", false, null, a.getImage()))
                 .toList();
 
         List<CandidateItem> foods = foodPlaceRepository.findBySigCd(sigCd).stream()
                 .limit(CANDIDATE_LIMIT)
                 .map(f -> new CandidateItem(String.valueOf(f.getId()), "food", f.getName(),
-                        f.getAddr(), f.getCategory() != null ? f.getCategory() : "먹거리", false, null))
+                        f.getAddr(), f.getCategory() != null ? f.getCategory() : "먹거리", false, null, null))
                 .toList();
 
         List<CandidateItem> goodShops = goodPriceShopRepository.findBySigCd(sigCd).stream()
                 .filter(s -> isFood(s.getCategory()))
                 .limit(CANDIDATE_LIMIT)
                 .map(s -> new CandidateItem(String.valueOf(s.getId()), "goodprice", s.getName(),
-                        s.getAddr(), s.getCategory(), true, shopPriceText(s)))
+                        s.getAddr(), s.getCategory(), true, shopPriceText(s), null))
                 .toList();
 
         List<CandidateItem> specialties = specialtyRepository.findBySigCd(sigCd).stream()
                 .map(sp -> new CandidateItem(String.valueOf(sp.getId()), "specialty", sp.getName(),
-                        sp.getSeason(), "특산물", false, null))
+                        sp.getSeason(), "특산물", false, null, null))
                 .toList();
 
         List<CourseInitItem> initial = new ArrayList<>();

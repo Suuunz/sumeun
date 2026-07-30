@@ -227,6 +227,91 @@
         });
     }
 
+    /* ---------- 관광지 상세 펼치기 ----------
+       상세(설명·이용시간·주차 등)는 TourAPI 호출이 들어가므로 미리 받아두지 않고
+       펼칠 때 가져온다. 서버가 첫 조회 결과를 DB에 캐시하므로 두 번째부터는 즉시. */
+    function toggleDetail(card) {
+        const panel = card.querySelector('.cand-detail');
+        const btn = card.querySelector('.detail-btn');
+        if (!panel || !btn) return;
+
+        const icon = btn.querySelector('.material-symbols-outlined');
+        const label = btn.querySelector('.detail-btn__label');
+
+        // 이미 열려 있으면 닫기
+        if (!panel.classList.contains('hidden')) {
+            panel.classList.add('hidden');
+            if (icon) icon.textContent = 'expand_more';
+            if (label) label.textContent = '자세히';
+            return;
+        }
+
+        panel.classList.remove('hidden');
+        if (icon) icon.textContent = 'expand_less';
+        if (label) label.textContent = '접기';
+
+        if (panel.dataset.loaded === 'true') return; // 이미 받아둔 내용 재사용
+
+        panel.innerHTML = '<p class="font-caption text-caption text-text-muted">불러오는 중…</p>';
+        fetch('/api/attraction/' + card.getAttribute('data-id'))
+            .then((res) => (res.ok ? res.json() : null))
+            .then((d) => {
+                if (!d) {
+                    panel.innerHTML = '<p class="font-caption text-caption text-text-muted">정보를 불러오지 못했어요.</p>';
+                    return;
+                }
+                panel.innerHTML = renderDetail(d);
+                panel.dataset.loaded = 'true';
+            })
+            .catch(() => {
+                panel.innerHTML = '<p class="font-caption text-caption text-text-muted">정보를 불러오지 못했어요.</p>';
+            });
+    }
+
+    function esc(s) {
+        const d = document.createElement('div');
+        d.textContent = s == null ? '' : String(s);
+        return d.innerHTML;
+    }
+
+    function detailRow(icon, label, value) {
+        if (!value) return '';
+        return '<div class="flex items-start gap-2">' +
+            '<span class="material-symbols-outlined text-text-muted text-[16px] mt-0.5">' + icon + '</span>' +
+            '<span class="font-caption text-caption text-text-muted shrink-0">' + label + '</span>' +
+            '<span class="font-caption text-caption text-text-primary whitespace-pre-line">' + esc(value) + '</span>' +
+            '</div>';
+    }
+
+    function renderDetail(d) {
+        let html = '';
+
+        if (d.pending) {
+            html += '<p class="font-caption text-caption text-text-muted mb-2">' +
+                '오늘 조회 한도를 다 써서 상세 설명을 가져오지 못했어요. 내일 다시 열어보면 표시됩니다.</p>';
+        }
+
+        if (d.overview) {
+            html += '<p class="font-body-main text-caption text-text-primary leading-relaxed whitespace-pre-line mb-3">' +
+                esc(d.overview) + '</p>';
+        } else if (!d.pending) {
+            html += '<p class="font-caption text-caption text-text-muted mb-2">등록된 상세 설명이 없어요.</p>';
+        }
+
+        const rows = detailRow('schedule', '이용시간', d.usetime) +
+            detailRow('event_busy', '휴무일', d.restdate) +
+            detailRow('local_parking', '주차', d.parking) +
+            detailRow('call', '문의', d.infocenter || d.tel);
+        if (rows) html += '<div class="flex flex-col gap-1.5">' + rows + '</div>';
+
+        if (d.homepage) {
+            html += '<a href="' + esc(d.homepage) + '" target="_blank" rel="noopener noreferrer" ' +
+                'class="inline-flex items-center gap-1 mt-3 font-caption text-caption text-primary hover:underline">' +
+                '<span class="material-symbols-outlined text-[16px]">open_in_new</span>홈페이지</a>';
+        }
+        return html;
+    }
+
     /* ---------- 초기화 ---------- */
     function init() {
         timeline = document.getElementById('course-timeline');
@@ -234,8 +319,14 @@
         candidateSide = document.getElementById('candidate-side');
         if (!timeline) return;
 
-        // 후보 [+ 담기]
+        // 후보 [+ 담기] / [자세히]
         if (candidateSide) candidateSide.addEventListener('click', (e) => {
+            const detailBtn = e.target.closest('.detail-btn');
+            if (detailBtn) {
+                const card = detailBtn.closest('.cand-card');
+                if (card) toggleDetail(card);
+                return;
+            }
             const btn = e.target.closest('.add-btn');
             if (!btn) return;
             const card = btn.closest('.cand-card');

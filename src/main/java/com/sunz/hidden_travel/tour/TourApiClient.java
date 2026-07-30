@@ -118,6 +118,37 @@ public class TourApiClient {
                 .build());
     }
 
+    /**
+     * 공통 상세 — overview(상세설명), homepage 등. 콘텐츠 1건당 1회.
+     * 결과가 없으면 null.
+     */
+    public JsonNode detailCommon(String contentId) {
+        List<JsonNode> items = call(b -> b.path("/detailCommon2")
+                .queryParam("serviceKey", serviceKey)
+                .queryParam("MobileOS", "ETC")
+                .queryParam("MobileApp", "Sumeun")
+                .queryParam("_type", "json")
+                .queryParam("contentId", contentId)
+                .build()).items();
+        return items.isEmpty() ? null : items.get(0);
+    }
+
+    /**
+     * 유형별 상세 — 관광지(12)는 usetime/restdate/parking/infocenter 등. 콘텐츠 1건당 1회.
+     * 결과가 없으면 null.
+     */
+    public JsonNode detailIntro(String contentId, int contentTypeId) {
+        List<JsonNode> items = call(b -> b.path("/detailIntro2")
+                .queryParam("serviceKey", serviceKey)
+                .queryParam("MobileOS", "ETC")
+                .queryParam("MobileApp", "Sumeun")
+                .queryParam("_type", "json")
+                .queryParam("contentId", contentId)
+                .queryParam("contentTypeId", contentTypeId)
+                .build()).items();
+        return items.isEmpty() ? null : items.get(0);
+    }
+
     /** 여행코스 세부 경유지 (contentTypeId=25) */
     public List<JsonNode> detailInfo(String contentId, int contentTypeId) {
         return call(b -> b.path("/detailInfo2")

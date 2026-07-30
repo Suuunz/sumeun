@@ -45,4 +45,42 @@ public class Attraction {
     private String sourceContentId;
 
     private String image;
+
+    /* =========================================================
+       상세 정보 — 목록 API 에는 없고 detailCommon2/detailIntro2 로만 얻는다.
+       콘텐츠 1건당 호출 2회가 들어 전량 적재는 비현실적이므로,
+       사용자가 실제로 펼쳐본 관광지만 채워 넣고 여기에 캐시한다.
+       (description = detailCommon2 의 overview)
+       ========================================================= */
+
+    /** 공식 홈페이지 */
+    @Column(columnDefinition = "TEXT")
+    private String homepage;
+
+    /** 이용시간 */
+    @Column(columnDefinition = "TEXT")
+    private String usetime;
+
+    /** 휴무일 */
+    private String restdate;
+
+    /** 주차 가능 여부 */
+    @Column(columnDefinition = "TEXT")
+    private String parking;
+
+    /** 문의·안내처 */
+    private String infocenter;
+
+    /** 전화번호 (목록 API 에 포함되어 있어 적재 시 함께 저장) */
+    private String tel;
+
+    /**
+     * 상세를 이미 조회했는지. 조회 결과가 비어 있어도 true 로 두어
+     * 같은 콘텐츠를 반복 호출하지 않는다(호출 한도 절약).
+     *
+     * default false 를 명시해야 이미 적재된 행이 있는 테이블에도 컬럼을 추가할 수 있다
+     * (기본값이 없으면 NOT NULL 제약 때문에 ALTER 가 실패한다).
+     */
+    @Column(name = "detail_fetched", nullable = false, columnDefinition = "boolean default false")
+    private boolean detailFetched = false;
 }
