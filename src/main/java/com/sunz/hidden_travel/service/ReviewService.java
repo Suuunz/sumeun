@@ -117,11 +117,18 @@ public class ReviewService {
         return cards;
     }
 
-    /** 후기 상세. 없으면 null */
+    /**
+     * 후기 상세. 없으면 null.
+     * 비공개 후기는 작성자 본인에게만 보인다 — 링크를 알아도 남은 볼 수 없다.
+     */
     @Transactional(readOnly = true)
     public ReviewDetail detail(Long reviewId, Long viewerId) {
         Review r = reviewRepository.findById(reviewId).orElse(null);
         if (r == null) {
+            return null;
+        }
+        boolean mine = r.getUserId().equals(viewerId);
+        if (!r.isShared() && !mine) {
             return null;
         }
         SavedCourse course = savedCourseRepository.findById(r.getSavedCourseId()).orElse(null);
@@ -137,7 +144,7 @@ public class ReviewService {
                 r.getContent(),
                 format(r.getCreatedAt()),
                 r.isShared(),
-                r.getUserId().equals(viewerId));
+                mine);
     }
 
     /** 후기 작성 화면용 — 대상 코스(내 것이 아니면 null) */
@@ -151,6 +158,12 @@ public class ReviewService {
     @Transactional(readOnly = true)
     public Review existingReview(Long courseId) {
         return reviewRepository.findFirstBySavedCourseId(courseId).orElse(null);
+    }
+
+    /** 내가 쓴 후기 수 (프로필 활동 지표) */
+    @Transactional(readOnly = true)
+    public int myReviewCount(Long userId) {
+        return userId == null ? 0 : reviewRepository.findByUserIdOrderByCreatedAtDesc(userId).size();
     }
 
     /* =========================================================

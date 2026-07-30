@@ -14,12 +14,17 @@
             <input id="course-name-input" aria-label="코스 이름" type="text" th:value="${data.courseName}"
                    class="bg-transparent border-0 border-b-2 border-border focus:border-primary-container focus:ring-0 text-center font-display-title text-display-title text-primary tracking-tight w-72 pb-1 transition-colors px-0 cursor-text"/>
         </div>
-        <!-- 담긴 곳이 없으면 course.js 가 비활성 처리 -->
-        <button id="save-btn" type="button" disabled
+        <!-- 로그인 상태: 저장 / 비로그인: 로그인으로 유도 (담은 코스는 sessionStorage 에 보존) -->
+        <button th:if="${currentUser != null}" id="save-btn" type="button" disabled
                 title="코스에 장소를 담아야 저장할 수 있어요"
                 class="bg-primary-container hover:bg-accent-hover text-on-secondary h-[44px] px-6 rounded font-semibold transition-all duration-300 hover:-translate-y-[2px] whitespace-nowrap shrink-0 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:bg-primary-container">
             <span class="material-symbols-outlined text-[18px]">save</span> 코스 저장
         </button>
+        <a th:if="${currentUser == null}" id="login-to-save" th:href="@{/}"
+           title="담아둔 코스는 로그인 후에도 그대로 남아 있어요"
+           class="bg-primary-container hover:bg-accent-hover text-on-secondary h-[44px] px-6 rounded font-semibold transition-all duration-300 hover:-translate-y-[2px] whitespace-nowrap shrink-0 flex items-center gap-1">
+            <span class="material-symbols-outlined text-[18px]">login</span> 로그인하고 저장
+        </a>
     </div>
 </header>
 

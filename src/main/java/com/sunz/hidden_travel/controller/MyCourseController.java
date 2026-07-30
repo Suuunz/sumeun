@@ -2,7 +2,6 @@ package com.sunz.hidden_travel.controller;
 
 import com.sunz.hidden_travel.service.ReviewService;
 import com.sunz.hidden_travel.user.CurrentUserService;
-import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,8 +21,8 @@ public class MyCourseController {
     }
 
     @GetMapping("/my/courses")
-    public String myCourses(HttpSession session, Model model) {
-        Long userId = currentUserService.current(session).getId();
+    public String myCourses(Model model) {
+        Long userId = currentUserService.currentId();
         model.addAttribute("courses", reviewService.myCourseCards(userId));
         return "my-courses";
     }

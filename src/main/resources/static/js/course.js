@@ -76,6 +76,53 @@
         updateSummary();
         syncAdded();
         toggleEmpty();
+        saveDraft();
+    }
+
+    /* ---------- 임시 보관 (비로그인 → 로그인 왕복 시 코스 유지) ----------
+       비로그인 상태로 코스를 담다가 로그인하러 가면 페이지를 떠나게 된다.
+       담은 내용을 sessionStorage 에 두었다가 돌아왔을 때 복원한다. */
+    const DRAFT_KEY = 'courseDraft';
+
+    function currentSigCd() {
+        const input = document.querySelector('#save-form input[name="sigCd"]');
+        return input ? input.value : '';
+    }
+
+    function saveDraft() {
+        try {
+            const items = courseItems().map((i) => ({
+                name: i.getAttribute('data-name'),
+                type: i.getAttribute('data-type'),
+                category: i.getAttribute('data-category'),
+                sage: i.getAttribute('data-sage') === 'true'
+            }));
+            if (items.length === 0) {
+                sessionStorage.removeItem(DRAFT_KEY);
+                return;
+            }
+            sessionStorage.setItem(DRAFT_KEY, JSON.stringify({ sigCd: currentSigCd(), items: items }));
+        } catch (e) { /* 저장 실패는 무시 — 기능에 영향 없음 */ }
+    }
+
+    function restoreDraft() {
+        try {
+            const raw = sessionStorage.getItem(DRAFT_KEY);
+            if (!raw) return;
+            const draft = JSON.parse(raw);
+            // 다른 지역의 코스는 복원하지 않는다
+            if (!draft || draft.sigCd !== currentSigCd() || !Array.isArray(draft.items)) return;
+            draft.items.forEach((it) => {
+                if (!it.name || inCourse(it.name)) return; // 서버가 이미 렌더한 항목과 중복 방지
+                timeline.insertBefore(makeCourseItem(it.name, it.type, it.category, it.sage), emptyState);
+            });
+        } catch (e) { /* 손상된 값이면 무시 */ }
+    }
+
+    function clearDraft() {
+        try {
+            sessionStorage.removeItem(DRAFT_KEY);
+        } catch (e) { /* 무시 */ }
     }
     function renumber() {
         courseItems().forEach((it, i) => {
@@ -174,6 +221,7 @@
                 type: i.getAttribute('data-type'),
                 sage: i.getAttribute('data-sage') === 'true'
             })));
+            clearDraft();        // 서버에 저장되므로 임시 보관본은 지운다
             btn.disabled = true; // 중복 제출 방지
             form.submit();
         });
@@ -204,7 +252,8 @@
         initTabs();
         initDnd();
         initSave();
-        refresh(); // 초기 담긴 항목 반영(번호/요약/왼쪽 체크)
+        restoreDraft(); // 로그인하러 다녀온 사이 담아둔 코스 복원
+        refresh();      // 초기 담긴 항목 반영(번호/요약/왼쪽 체크)
     }
 
     if (document.readyState === 'loading') {

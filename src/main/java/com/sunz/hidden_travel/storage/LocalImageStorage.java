@@ -35,13 +35,47 @@ public class LocalImageStorage implements ImageStorage {
     /** 후기 1건당 최대 장수 */
     private static final int MAX_FILES = 5;
 
+    private final Path rootDir;
     private final Path baseDir;
     private final String urlPrefix;
 
     public LocalImageStorage(@Value("${app.upload.dir:./uploads}") String uploadDir,
                              @Value("${app.upload.url-prefix:/uploads}") String urlPrefix) {
-        this.baseDir = Paths.get(uploadDir).resolve("reviews").toAbsolutePath().normalize();
+        this.rootDir = Paths.get(uploadDir).toAbsolutePath().normalize();
+        this.baseDir = rootDir.resolve("reviews");
         this.urlPrefix = urlPrefix;
+    }
+
+    /** 이미지 1장을 folder 아래에 저장하고 웹 경로를 반환. 실패 시 null */
+    @Override
+    public String saveOne(MultipartFile file, String folder) {
+        if (file == null || file.isEmpty()) {
+            return null;
+        }
+        if (file.getSize() > MAX_BYTES) {
+            log.warn("[Upload] 용량 초과({}바이트): {}", file.getSize(), file.getOriginalFilename());
+            return null;
+        }
+        String ext = extensionOf(file.getOriginalFilename());
+        if (ext == null) {
+            log.warn("[Upload] 허용되지 않는 형식: {}", file.getOriginalFilename());
+            return null;
+        }
+        // folder 는 호출부가 정하는 고정 문자열이지만, 경로 이탈은 원천 차단한다
+        Path dir = rootDir.resolve(folder).normalize();
+        if (!dir.startsWith(rootDir)) {
+            log.warn("[Upload] 잘못된 저장 위치: {}", folder);
+            return null;
+        }
+        try {
+            Files.createDirectories(dir);
+            String stored = UUID.randomUUID().toString().replace("-", "") + "." + ext;
+            Files.copy(file.getInputStream(), dir.resolve(stored), StandardCopyOption.REPLACE_EXISTING);
+            return urlPrefix + "/" + folder + "/" + stored;
+        } catch (IOException e) {
+            log.error("[Upload] 저장 실패: {}", file.getOriginalFilename(), e);
+            return null;
+        }
     }
 
     @Override

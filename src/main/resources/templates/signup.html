@@ -10,13 +10,17 @@
     <div class="text-center mb-8">
         <h1 class="font-brand-logo text-[24px] text-primary tracking-tight">Sumeun</h1>
     </div>
-    <!-- Sign Up Form: 가입하기 → /onboarding -->
-    <form class="space-y-6" id="signupForm" th:action="@{/onboarding}" method="get">
+    <!-- 가입 실패 안내 -->
+    <div th:if="${error}" class="mb-4 border-2 rounded-lg p-3 text-center" style="border-color: var(--error)">
+        <span class="font-caption text-caption" style="color: var(--error)" th:text="${error}">오류</span>
+    </div>
+    <!-- Sign Up Form: 가입 → 자동 로그인 → /onboarding -->
+    <form class="space-y-6" id="signupForm" th:action="@{/signup}" method="post">
         <!-- Email Field -->
         <div class="space-y-1">
             <label class="block font-body-main text-body-main text-text-primary" for="email">이메일</label>
             <div class="relative">
-                <input class="input-field w-full h-[44px] px-3 py-2 bg-surface border border-border rounded-lg font-body-main text-body-main text-text-primary placeholder:text-text-muted" id="email" placeholder="이메일 주소를 입력하세요" required type="email"/>
+                <input class="input-field w-full h-[44px] px-3 py-2 bg-surface border border-border rounded-lg font-body-main text-body-main text-text-primary placeholder:text-text-muted" id="email" name="email" th:value="${email}" placeholder="이메일 주소를 입력하세요" required type="email"/>
                 <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-secondary hidden">check</span>
             </div>
         </div>
@@ -24,7 +28,7 @@
         <div class="space-y-1">
             <label class="block font-body-main text-body-main text-text-primary" for="password">비밀번호</label>
             <div class="relative">
-                <input class="input-field w-full h-[44px] px-3 py-2 bg-surface border border-border rounded-lg font-body-main text-body-main text-text-primary placeholder:text-text-muted" id="password" placeholder="비밀번호를 만드세요" required type="password"/>
+                <input class="input-field w-full h-[44px] px-3 py-2 bg-surface border border-border rounded-lg font-body-main text-body-main text-text-primary placeholder:text-text-muted" id="password" name="password" minlength="8" placeholder="비밀번호를 만드세요 (8자 이상)" required type="password"/>
                 <p class="font-caption text-caption text-outline mt-1 hidden">비밀번호는 최소 8자 이상이어야 합니다.</p>
             </div>
         </div>
@@ -32,7 +36,7 @@
         <div class="space-y-1">
             <label class="block font-body-main text-body-main text-text-primary" for="confirm-password">비밀번호 확인</label>
             <div class="relative">
-                <input class="input-field w-full h-[44px] px-3 py-2 bg-surface border border-border rounded-lg font-body-main text-body-main text-text-primary placeholder:text-text-muted" id="confirm-password" placeholder="비밀번호를 다시 입력하세요" required type="password"/>
+                <input class="input-field w-full h-[44px] px-3 py-2 bg-surface border border-border rounded-lg font-body-main text-body-main text-text-primary placeholder:text-text-muted" id="confirm-password" name="confirmPassword" minlength="8" placeholder="비밀번호를 다시 입력하세요" required type="password"/>
                 <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-secondary hidden">check</span>
             </div>
         </div>
@@ -40,7 +44,7 @@
         <div class="space-y-1">
             <label class="block font-body-main text-body-main text-text-primary" for="nickname">닉네임</label>
             <div class="relative">
-                <input class="input-field w-full h-[44px] px-3 py-2 bg-surface border border-border rounded-lg font-body-main text-body-main text-text-primary placeholder:text-text-muted" id="nickname" placeholder="닉네임을 정해주세요" required type="text"/>
+                <input class="input-field w-full h-[44px] px-3 py-2 bg-surface border border-border rounded-lg font-body-main text-body-main text-text-primary placeholder:text-text-muted" id="nickname" name="nickname" th:value="${nickname}" maxlength="30" placeholder="닉네임을 정해주세요" required type="text"/>
             </div>
         </div>
         <!-- Primary Button -->

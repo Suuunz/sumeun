@@ -21,6 +21,10 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
 	implementation 'org.springframework.boot:spring-boot-starter-webmvc'
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	// 폼 로그인 + BCrypt (소셜 로그인은 추후 oauth2-client 추가로 확장)
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+	// 템플릿에서 sec:authorize / 인증정보 접근
+	implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
 	// Boot 4는 자동설정을 세분화 모듈로 분리 → H2 콘솔은 이 모듈이 있어야 /h2-console 등록
 	implementation 'org.springframework.boot:spring-boot-h2console'
 	// 개발용 H2(파일 모드). MySQL/PostgreSQL 전환 시 이 드라이버를 교체하고
@@ -35,6 +39,7 @@ dependencies {
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-thymeleaf-test'
 	testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
+	testImplementation 'org.springframework.security:spring-security-test'
 	testCompileOnly 'org.projectlombok:lombok'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	testAnnotationProcessor 'org.projectlombok:lombok'

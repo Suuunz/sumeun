@@ -9,7 +9,6 @@ import com.sunz.hidden_travel.repository.RegionRepository;
 import com.sunz.hidden_travel.service.RegionQueryService;
 import com.sunz.hidden_travel.service.SavedCourseService;
 import com.sunz.hidden_travel.user.CurrentUserService;
-import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -58,10 +57,9 @@ public class CourseController {
     @PostMapping("/course/save")
     public String save(@RequestParam(required = false) String sigCd,
                        @RequestParam(required = false) String courseName,
-                       @RequestParam(required = false) String itemsJson,
-                       HttpSession session) {
+                       @RequestParam(required = false) String itemsJson) {
         String cd = sigCd != null ? sigCd : DEFAULT_SIG;
-        Long userId = currentUserService.current(session).getId();
+        Long userId = currentUserService.currentId();
         SavedCourse saved = savedCourseService.save(userId, cd, courseName, itemsJson);
         if (saved == null) {
             // 경유지가 없거나 파싱 실패 → 편집 화면으로 되돌린다
@@ -74,8 +72,8 @@ public class CourseController {
     @GetMapping("/course/saved")
     public String saved(@RequestParam(required = false) Long courseId, Model model) {
         SavedCourse course = savedCourseService.find(courseId);
-        if (course == null) {
-            // 잘못된 접근(직접 URL 입력 등) → 내 코스 목록으로
+        // 없는 코스이거나 남의 코스면 목록으로 (id 만 바꿔 남의 코스를 열어보지 못하게)
+        if (course == null || !course.getUserId().equals(currentUserService.currentId())) {
             return "redirect:/my/courses";
         }
 

@@ -6,7 +6,6 @@ import com.sunz.hidden_travel.domain.SavedCourse;
 import com.sunz.hidden_travel.domain.SavedCourseStop;
 import com.sunz.hidden_travel.service.ReviewService;
 import com.sunz.hidden_travel.user.CurrentUserService;
-import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -36,12 +35,12 @@ public class ReviewController {
 
     /** 후기 작성 화면 (이미 쓴 후기가 있으면 내용을 채워 수정 모드로) */
     @GetMapping("/review/new")
-    public String form(@RequestParam(required = false) Long courseId, HttpSession session, Model model) {
+    public String form(@RequestParam(required = false) Long courseId, Model model) {
         if (courseId == null) {
             // courseId 없이 직접 접근 → 400 빈 화면 대신 목록으로 보낸다
             return "redirect:/my/courses";
         }
-        Long userId = currentUserService.current(session).getId();
+        Long userId = currentUserService.currentId();
         SavedCourse course = reviewService.courseForWriting(courseId, userId);
         if (course == null) {
             // 없는 코스거나 내 코스가 아님 → 목록으로
@@ -65,12 +64,11 @@ public class ReviewController {
     public String submit(@RequestParam(required = false) Long courseId,
                          @RequestParam(required = false) String content,
                          @RequestParam(name = "photos", required = false) List<MultipartFile> photos,
-                         @RequestParam(defaultValue = "false") boolean shared,
-                         HttpSession session) {
+                         @RequestParam(defaultValue = "false") boolean shared) {
         if (courseId == null) {
             return "redirect:/my/courses";
         }
-        Long userId = currentUserService.current(session).getId();
+        Long userId = currentUserService.currentId();
         Review saved = reviewService.write(userId, courseId, content, photos, shared);
         if (saved == null) {
             // 본문이 비었거나 코스를 찾지 못함 → 작성 화면으로 되돌린다
@@ -81,8 +79,8 @@ public class ReviewController {
 
     /** 후기 상세 — 공유 링크가 가리키는 페이지 */
     @GetMapping("/review/{id}")
-    public String detail(@PathVariable Long id, HttpSession session, Model model) {
-        Long userId = currentUserService.current(session).getId();
+    public String detail(@PathVariable Long id, Model model) {
+        Long userId = currentUserService.currentId();
         ReviewDetail detail = reviewService.detail(id, userId);
         if (detail == null) {
             return "redirect:/reviews";

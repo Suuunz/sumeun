@@ -139,7 +139,7 @@
 
         <!-- Nav: 내 코스 · 후기 둘러보기 -->
         <nav class="site-nav">
-            <a th:href="@{/my/courses}" class="site-nav__link">
+            <a th:if="${currentUser != null}" th:href="@{/my/courses}" class="site-nav__link">
                 <span class="material-symbols-outlined">bookmark</span>
                 내 코스
             </a>
@@ -149,15 +149,25 @@
             </a>
         </nav>
 
-        <!-- Profile -->
-        <button type="button" class="site-profile" aria-label="프로필">
-            <svg width="22" height="22" viewBox="0 0 24 24"
-                 fill="none" stroke="currentColor" stroke-width="2"
-                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <circle cx="12" cy="8" r="4"></circle>
-                <path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path>
-            </svg>
-        </button>
+        <!-- 로그인 상태: 프로필 링크 / 비로그인: 로그인·회원가입 -->
+        <div th:if="${currentUser != null}" class="site-account">
+            <a th:href="@{/profile}" class="site-profile-link" th:title="${currentUser.nickname}">
+                <img th:if="${currentUser.profileImage != null}" th:src="${currentUser.profileImage}"
+                     alt="프로필" class="site-avatar"/>
+                <span th:if="${currentUser.profileImage == null}" class="site-avatar site-avatar--initial"
+                      th:text="${currentUser.initial()}">여</span>
+                <span class="site-account__name" th:text="${currentUser.nickname}">닉네임</span>
+            </a>
+            <form th:action="@{/logout}" method="post" class="site-logout-form">
+                <button type="submit" class="site-nav__link" title="로그아웃">
+                    <span class="material-symbols-outlined">logout</span>
+                </button>
+            </form>
+        </div>
+        <div th:if="${currentUser == null}" class="site-account">
+            <a th:href="@{/}" class="site-nav__link">로그인</a>
+            <a th:href="@{/signup}" class="btn-primary site-signup-btn">회원가입</a>
+        </div>
     </div>
 
     <style>
@@ -243,6 +253,55 @@
         }
         .site-nav__link:hover { background: var(--accent-soft); color: var(--accent); }
         .site-nav__link .material-symbols-outlined { font-size: 18px; }
+        /* 로그아웃 버튼도 링크와 같은 모양으로 */
+        button.site-nav__link { border: none; background: none; cursor: pointer; }
+        .site-account {
+            display: flex;
+            align-items: center;
+            gap: var(--space-1);
+            flex-shrink: 0;
+        }
+        .site-logout-form { display: flex; }
+        .site-profile-link {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-1);
+            height: 42px;
+            padding: 0 var(--space-2) 0 6px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-chip);
+            transition: border-color var(--transition);
+        }
+        .site-profile-link:hover { border-color: var(--accent); }
+        .site-avatar {
+            width: 30px;
+            height: 30px;
+            border-radius: var(--radius-chip);
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+        .site-avatar--initial {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--accent-soft);
+            color: var(--accent);
+            font-weight: 700;
+            font-size: var(--fs-caption);
+        }
+        .site-account__name {
+            font-size: var(--fs-caption);
+            color: var(--text);
+            max-width: 110px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .site-signup-btn { height: 42px; padding: 0 var(--space-2); font-size: var(--fs-caption); }
+        @media (max-width: 860px) {
+            .site-account__name { display: none; }
+            .site-profile-link { padding: 0 6px; }
+        }
         /* 좁은 화면에서는 아이콘만 노출 */
         @media (max-width: 860px) {
             .site-nav__link { padding: 0 var(--space-1); font-size: 0; gap: 0; }

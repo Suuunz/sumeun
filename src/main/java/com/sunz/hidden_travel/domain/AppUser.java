@@ -13,10 +13,11 @@ import lombok.Setter;
 import java.time.LocalDateTime;
 
 /**
- * 서비스 사용자. 코스/후기의 작성자.
- * 현재 로그인은 구현 전이라 세션당 더미 사용자를 만들어 쓴다
- * ({@link com.sunz.hidden_travel.user.CurrentUserService}).
- * 실제 인증 도입 시 이 엔티티에 이메일·비밀번호 필드를 추가하면 된다.
+ * 서비스 사용자. 코스/후기의 작성자이자 로그인 주체.
+ *
+ * 로그인은 이메일 + 비밀번호(BCrypt 해시) 방식.
+ * 소셜 로그인으로 확장할 때는 provider/providerId 를 추가하고
+ * password 를 nullable 로 완화하면 된다.
  */
 @Entity
 @Table(name = "app_user")
@@ -29,14 +30,37 @@ public class AppUser {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    /** 화면에 노출되는 이름 */
+    /** 로그인 아이디 (중복 불가) */
+    @Column(nullable = false, unique = true, length = 190)
+    private String email;
+
+    /** BCrypt 해시 — 평문을 저장하지 않는다 */
     @Column(nullable = false)
+    private String password;
+
+    /** 화면에 노출되는 이름 */
+    @Column(nullable = false, length = 30)
     private String nickname;
+
+    /** 프로필 한 줄 소개 (선택) */
+    @Column(length = 200)
+    private String bio;
+
+    /** 프로필 사진 경로 (선택, 예: /uploads/profiles/xxx.jpg) */
+    @Column(name = "profile_image")
+    private String profileImage;
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
-    public AppUser(String nickname) {
+    public AppUser(String email, String password, String nickname) {
+        this.email = email;
+        this.password = password;
         this.nickname = nickname;
+    }
+
+    /** 프로필 사진이 없으면 화면에서 이니셜 아바타를 쓴다 */
+    public String initial() {
+        return (nickname == null || nickname.isBlank()) ? "?" : nickname.substring(0, 1);
     }
 }

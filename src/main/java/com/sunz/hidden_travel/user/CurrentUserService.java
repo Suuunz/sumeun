@@ -1,15 +1,16 @@
 package com.sunz.hidden_travel.user;
 
 import com.sunz.hidden_travel.domain.AppUser;
-import jakarta.servlet.http.HttpSession;
 
 /**
- * 현재 사용자 조회. 지금은 세션 기반 더미 구현이지만,
- * 실제 인증(Spring Security) 도입 시 이 인터페이스의 구현만 교체하면 된다.
- * (RecommendService 와 동일한 교체 전략)
+ * 현재 로그인한 사용자 조회. SecurityContext 를 감싸서
+ * 컨트롤러가 인증 API 에 직접 의존하지 않게 한다.
  */
 public interface CurrentUserService {
 
-    /** 현재 사용자. 없으면 만들어서라도 반환한다(null 없음). */
-    AppUser current(HttpSession session);
+    /** 로그인한 사용자, 비로그인이면 null */
+    AppUser current();
+
+    /** 로그인한 사용자 id, 비로그인이면 null */
+    Long currentId();
 }
