@@ -14,6 +14,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="한국의 덜 알려진 여행지를 발굴해 나만의 여행 코스를 만드는 서비스">
     <title th:text="${title}">숨은여행</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/images/logo.svg}">
 
     <!-- Fonts (CDN) -->
     <link rel="preconnect" href="https://fastly.jsdelivr.net" crossorigin>
@@ -122,8 +123,11 @@
 <!-- ===================== HEADER ===================== -->
 <header th:fragment="header" class="site-header">
     <div class="site-header__inner">
-        <!-- Logo -->
-        <a th:href="@{/map}" class="site-logo">숨은여행</a>
+        <!-- Logo: 발자국 마크 + 워드마크 -->
+        <a th:href="@{/map}" class="site-logo" aria-label="숨은여행 홈">
+            <span th:replace="~{fragments/brand :: logoMark(30)}"></span>
+            <span class="site-logo__text">숨은여행</span>
+        </a>
 
         <!-- Region search -->
         <form class="region-search" th:action="@{/region/panel}" method="get" role="search">
@@ -190,11 +194,22 @@
             gap: var(--space-3);
         }
         .site-logo {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
             font-family: var(--font-serif);
             font-size: var(--fs-section);
             font-weight: 700;
             color: var(--text);
             white-space: nowrap;
+        }
+        .site-logo .brand-mark { flex-shrink: 0; }
+        /* 로고에 마우스를 올리면 발자국이 살짝 걸어나가는 느낌 */
+        .site-logo .brand-mark { transition: transform var(--transition); }
+        .site-logo:hover .brand-mark { transform: translateX(2px) rotate(-4deg); }
+        /* 좁은 화면에서는 마크만 남긴다 */
+        @media (max-width: 640px) {
+            .site-logo__text { display: none; }
         }
         .region-search {
             flex: 1;
