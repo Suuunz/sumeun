@@ -8,7 +8,7 @@
 <main class="flex-1 pt-8 pb-section-gap px-4 md:px-section-gap max-w-container-max mx-auto w-full">
 
     <!-- 1) 제목 -->
-    <section class="mb-section-gap fade-up">
+    <section class="mb-section-gap animate-fade-up">
         <h1 class="font-display-title text-display-title text-text-primary mb-2">후기 둘러보기</h1>
         <p class="font-body-main text-body-main text-text-muted">
             다른 여행자들이 다녀온 숨은 지역들이에요. 마음에 드는 곳은 코스로 만들어보세요.
@@ -56,7 +56,7 @@
 
     <!-- 3) 빈 상태 -->
     <section th:if="${reviews.isEmpty()}"
-             class="border-2 border-dashed border-outline-variant rounded-xl p-10 flex flex-col items-center text-center gap-4 fade-up">
+             class="border-2 border-dashed border-outline-variant rounded-xl p-10 flex flex-col items-center text-center gap-4 animate-fade-up">
         <span class="material-symbols-outlined text-text-muted text-[40px]">rate_review</span>
         <p class="font-body-main text-body-main text-text-muted">
             아직 공개된 후기가 없어요.<br/>첫 후기를 남겨 다른 여행자에게 지역을 알려주세요.

@@ -8,7 +8,7 @@
 <main class="flex-1 pt-8 pb-section-gap px-4 md:px-section-gap max-w-container-max mx-auto w-full">
 
     <!-- 1) 제목 -->
-    <section class="mb-section-gap fade-up">
+    <section class="mb-section-gap animate-fade-up">
         <h1 class="font-display-title text-display-title text-text-primary mb-2">내 코스</h1>
         <p class="font-body-main text-body-main text-text-muted">
             직접 만든 코스예요. 다녀오셨다면 후기를 남겨 다른 여행자에게 알려주세요.
@@ -61,7 +61,7 @@
 
     <!-- 3) 빈 상태 -->
     <section th:if="${courses.isEmpty()}"
-             class="border-2 border-dashed border-outline-variant rounded-xl p-10 flex flex-col items-center text-center gap-4 fade-up">
+             class="border-2 border-dashed border-outline-variant rounded-xl p-10 flex flex-col items-center text-center gap-4 animate-fade-up">
         <span class="material-symbols-outlined text-text-muted text-[40px]">add_location_alt</span>
         <p class="font-body-main text-body-main text-text-muted">
             아직 저장한 코스가 없어요.<br/>지도에서 지역을 골라 첫 코스를 만들어보세요.

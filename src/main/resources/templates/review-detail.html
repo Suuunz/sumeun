@@ -7,7 +7,7 @@
 
 <main class="flex-1 pt-8 pb-section-gap px-4 max-w-[760px] mx-auto w-full">
 
-    <div class="mb-8 fade-up">
+    <div class="mb-8 animate-fade-up">
         <a th:href="@{/reviews}" class="inline-flex items-center text-text-muted hover:text-primary transition-colors">
             <span class="material-symbols-outlined mr-2">arrow_back</span>
             후기 둘러보기
@@ -15,7 +15,7 @@
     </div>
 
     <!-- 1) 헤더: 지역 · 코스명 · 작성자 -->
-    <section class="mb-section-gap fade-up">
+    <section class="mb-section-gap animate-fade-up">
         <a th:href="@{/region(sigCd=${review.sigCd})}"
            class="font-caption text-caption text-primary hover:underline" th:text="${review.regionLabel}">경상북도 안동시</a>
         <h1 class="font-display-title text-display-title text-text-primary mt-2 mb-3" th:text="${review.courseTitle}">코스명</h1>
@@ -29,19 +29,19 @@
     </section>
 
     <!-- 2) 사진 -->
-    <section th:if="${!review.photos.isEmpty()}" class="mb-section-gap flex flex-col gap-3 fade-up">
+    <section th:if="${!review.photos.isEmpty()}" class="mb-section-gap flex flex-col gap-3 animate-fade-up">
         <img th:each="p : ${review.photos}" th:src="${p}" alt="여행 사진"
              class="w-full rounded-xl border border-border" loading="lazy"/>
     </section>
 
     <!-- 3) 줄글 후기 -->
-    <section class="bg-surface border border-border rounded-xl p-card-padding mb-section-gap fade-up">
+    <section class="bg-surface border border-border rounded-xl p-card-padding mb-section-gap animate-fade-up">
         <p class="font-body-main text-body-main text-text-primary whitespace-pre-line leading-relaxed"
            th:text="${review.content}">후기 본문</p>
     </section>
 
     <!-- 4) 다녀온 코스 -->
-    <section th:if="${!review.stopNames.isEmpty()}" class="mb-section-gap fade-up">
+    <section th:if="${!review.stopNames.isEmpty()}" class="mb-section-gap animate-fade-up">
         <h2 class="font-card-title text-card-title text-text-primary mb-3">다녀온 코스</h2>
         <div class="bg-surface border border-border rounded-xl p-card-padding flex flex-wrap gap-2">
             <span th:each="name : ${review.stopNames}" class="chip" th:text="${name}">지점</span>
@@ -49,7 +49,7 @@
     </section>
 
     <!-- 5) 액션: 공유 / 수정 / 이 지역 보기 -->
-    <section class="flex flex-col sm:flex-row gap-4 fade-up">
+    <section class="flex flex-col sm:flex-row gap-4 animate-fade-up">
         <button type="button" id="share-btn" class="btn-primary flex-1"
                 th:attr="data-share-title=${review.courseTitle} + ' 여행 후기'">
             <span class="material-symbols-outlined text-[20px]">share</span>
@@ -60,7 +60,7 @@
     </section>
 
     <!-- 6) 탐색 루프: 이 지역으로 내 코스 만들기 -->
-    <section class="mt-section-gap bg-sage-bg border border-border rounded-xl p-card-padding flex items-center justify-between gap-4 fade-up">
+    <section class="mt-section-gap bg-sage-bg border border-border rounded-xl p-card-padding flex items-center justify-between gap-4 animate-fade-up">
         <div>
             <p class="font-card-title text-card-title text-secondary mb-1">여기도 가보고 싶으신가요?</p>
             <p class="font-caption text-caption text-text-muted">같은 지역으로 나만의 코스를 만들어보세요.</p>

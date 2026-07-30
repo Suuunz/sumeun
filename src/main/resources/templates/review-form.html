@@ -5,95 +5,119 @@
 
 <header th:replace="~{fragments/layout :: header}"></header>
 
-<main class="flex-1 pt-8 pb-section-gap px-4 max-w-[760px] mx-auto w-full">
+<main class="flex-1 pt-8 pb-40 px-4 max-w-[760px] mx-auto w-full">
 
     <!-- 되돌아가기 -->
-    <div class="mb-8 fade-up">
+    <div class="mb-6">
         <a th:href="@{/my/courses}" class="inline-flex items-center text-text-muted hover:text-primary transition-colors">
             <span class="material-symbols-outlined mr-2">arrow_back</span>
             내 코스로 돌아가기
         </a>
     </div>
 
-    <!-- 대상 코스 요약 -->
-    <section class="bg-surface border border-border rounded-xl p-card-padding mb-section-gap fade-up">
-        <span class="font-caption text-caption text-text-muted" th:text="${regionLabel}">경상북도 안동시</span>
-        <h1 class="font-section-title text-section-title text-text-primary mt-1 mb-4" th:text="${courseTitle}">코스명</h1>
-        <div class="flex flex-wrap gap-2">
-            <span th:each="name : ${stopNames}" class="chip" th:text="${name}">지점</span>
+    <!-- 페이지 제목 -->
+    <div class="mb-6">
+        <h1 class="font-display-title text-display-title text-text-primary mb-2"
+            th:text="${editing} ? '후기 수정하기' : '여행 후기 남기기'">여행 후기 남기기</h1>
+        <p class="font-body-main text-body-main text-text-muted">
+            다녀온 기록을 남기면 다른 여행자가 이 지역을 발견하게 됩니다.
+        </p>
+    </div>
+
+    <!-- 대상 코스 (강조: 액센트 좌측 바) -->
+    <section class="bg-surface border-2 border-border rounded-xl overflow-hidden mb-section-gap shadow-sm">
+        <div class="border-l-4 border-primary p-card-padding">
+            <span class="font-caption text-caption text-primary font-semibold" th:text="${regionLabel}">경상북도 안동시</span>
+            <h2 class="font-section-title text-section-title text-text-primary mt-1 mb-4" th:text="${courseTitle}">코스명</h2>
+            <div class="flex flex-wrap gap-2">
+                <span th:each="name : ${stopNames}" class="chip" th:text="${name}">지점</span>
+            </div>
         </div>
     </section>
 
     <form th:action="@{/review}" method="post" enctype="multipart/form-data"
-          class="flex flex-col gap-section-gap fade-up" id="review-form">
+          class="flex flex-col gap-6" id="review-form">
         <input type="hidden" name="courseId" th:value="${courseId}"/>
 
-        <!-- 1) 사진 -->
-        <section class="flex flex-col gap-4">
-            <div>
-                <h2 class="font-card-title text-card-title text-text-primary mb-1">여행 사진</h2>
-                <p class="font-caption text-caption text-text-muted">최대 5장 · 장당 10MB 까지 (jpg, png, gif, webp)</p>
+        <!-- ===== 1) 사진 ===== -->
+        <section class="bg-surface border-2 border-border rounded-xl p-card-padding shadow-sm">
+            <div class="flex items-center gap-3 mb-4">
+                <span class="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center font-bold shrink-0">1</span>
+                <div>
+                    <h3 class="font-section-title text-section-title text-text-primary leading-tight">여행 사진</h3>
+                    <p class="font-caption text-caption text-text-muted">최대 5장 · 장당 10MB (jpg, png, gif, webp)</p>
+                </div>
             </div>
 
             <!-- 이미 올린 사진(수정 진입 시) -->
-            <div th:if="${!existingPhotos.isEmpty()}" class="flex flex-col gap-2">
-                <span class="font-caption text-caption text-text-muted">이미 올린 사진</span>
+            <div th:if="${!existingPhotos.isEmpty()}" class="flex flex-col gap-2 mb-4">
+                <span class="font-caption text-caption text-text-primary font-semibold">이미 올린 사진</span>
                 <div class="grid grid-cols-3 sm:grid-cols-5 gap-2">
                     <img th:each="p : ${existingPhotos}" th:src="${p}" alt="올린 사진"
-                         class="w-full aspect-square object-cover rounded-lg border border-border"/>
+                         class="w-full aspect-square object-cover rounded-lg border-2 border-border"/>
                 </div>
             </div>
 
             <!-- 업로드 영역 -->
             <label for="photos"
-                   class="border-2 border-dashed border-outline-variant rounded-xl p-8 flex flex-col items-center text-center gap-2 cursor-pointer hover:border-primary transition-colors">
-                <span class="material-symbols-outlined text-text-muted text-[32px]">add_photo_alternate</span>
-                <span class="font-body-main text-body-main text-text-primary">사진을 선택하세요</span>
-                <span class="font-caption text-caption text-text-muted">여러 장을 한 번에 고를 수 있어요</span>
+                   class="block border-2 border-dashed border-primary bg-accent-soft rounded-xl py-10 px-6 flex flex-col items-center text-center gap-2 cursor-pointer hover:bg-surface-alt hover:border-accent-hover transition-colors">
+                <span class="material-symbols-outlined text-primary text-[40px]">add_photo_alternate</span>
+                <span class="font-card-title text-card-title text-text-primary">사진 선택하기</span>
+                <span class="font-caption text-caption text-text-muted">클릭해서 여러 장을 한 번에 고를 수 있어요</span>
             </label>
             <input id="photos" name="photos" type="file" accept="image/*" multiple class="hidden"/>
 
             <!-- 선택한 사진 미리보기(review.js가 채움) -->
-            <div id="photo-preview" class="hidden grid grid-cols-3 sm:grid-cols-5 gap-2"></div>
+            <div id="photo-preview" class="hidden grid grid-cols-3 sm:grid-cols-5 gap-2 mt-4"></div>
         </section>
 
-        <!-- 2) 줄글 후기 -->
-        <section class="flex flex-col gap-4">
-            <div>
-                <h2 class="font-card-title text-card-title text-text-primary mb-1">후기</h2>
-                <p class="font-caption text-caption text-text-muted">어떤 점이 좋았는지, 다음 사람에게 알려주고 싶은 것을 적어주세요.</p>
+        <!-- ===== 2) 줄글 후기 ===== -->
+        <section class="bg-surface border-2 border-border rounded-xl p-card-padding shadow-sm">
+            <div class="flex items-center gap-3 mb-4">
+                <span class="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center font-bold shrink-0">2</span>
+                <div>
+                    <h3 class="font-section-title text-section-title text-text-primary leading-tight">후기</h3>
+                    <p class="font-caption text-caption text-text-muted">다음 사람에게 알려주고 싶은 것을 적어주세요.</p>
+                </div>
             </div>
             <textarea name="content" id="content" rows="10" required
                       placeholder="예) 월영교는 해질 무렵에 가는 게 좋았어요. 근처 찜닭 골목은 평일 저녁에도 자리가 있었습니다."
-                      class="w-full bg-surface border border-border rounded-lg p-4 font-body-main text-body-main text-text-primary placeholder:text-text-muted focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors resize-y"
+                      class="w-full min-h-[220px] bg-surface-alt border-2 border-border rounded-lg p-4 font-body-main text-body-main text-text-primary placeholder:text-text-muted focus:outline-none focus:border-primary focus:bg-surface focus:ring-1 focus:ring-primary transition-colors resize-y"
                       th:text="${content}"></textarea>
         </section>
 
-        <!-- 3) 공유 여부 -->
-        <section class="bg-surface border border-border rounded-xl p-card-padding flex items-start gap-3">
-            <input type="checkbox" name="shared" id="shared" value="true" th:checked="${shared}"
-                   class="mt-1 w-5 h-5 rounded border-border text-primary focus:ring-primary shrink-0"/>
-            <label for="shared" class="cursor-pointer">
-                <span class="font-card-title text-card-title text-text-primary block">다른 여행자에게 공개하기</span>
-                <span class="font-caption text-caption text-text-muted">
-                    후기 둘러보기에 노출됩니다. 끄면 나만 볼 수 있어요.
+        <!-- ===== 3) 공개 여부 ===== -->
+        <section class="bg-surface border-2 border-border rounded-xl p-card-padding shadow-sm">
+            <div class="flex items-center gap-3 mb-4">
+                <span class="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center font-bold shrink-0">3</span>
+                <h3 class="font-section-title text-section-title text-text-primary leading-tight">공개 설정</h3>
+            </div>
+            <label for="shared"
+                   class="flex items-start gap-3 bg-sage-bg border-2 border-sage rounded-lg p-4 cursor-pointer hover:border-secondary transition-colors">
+                <input type="checkbox" name="shared" id="shared" value="true" th:checked="${shared}"
+                       class="mt-0.5 w-5 h-5 rounded border-2 border-sage text-sage focus:ring-sage shrink-0"/>
+                <span>
+                    <span class="font-card-title text-card-title text-text-primary block">다른 여행자에게 공개하기</span>
+                    <span class="font-caption text-caption text-text-muted">
+                        후기 둘러보기에 노출됩니다. 끄면 나만 볼 수 있어요.
+                    </span>
                 </span>
             </label>
         </section>
-
-        <!-- 4) 액션 -->
-        <div class="flex flex-col sm:flex-row gap-4">
-            <button type="submit" class="btn-primary flex-1" id="submit-btn">
-                <span class="material-symbols-outlined text-[20px]">check</span>
-                <span th:text="${editing} ? '후기 수정하기' : '후기 저장하기'">후기 저장하기</span>
-            </button>
-            <a th:href="@{/my/courses}" class="btn-secondary flex-1">취소</a>
-        </div>
     </form>
-
 </main>
 
-<footer th:replace="~{fragments/layout :: footer}"></footer>
+<!-- 하단 고정 액션 바 — 스크롤 위치와 무관하게 항상 보이도록 -->
+<div class="fixed bottom-0 left-0 right-0 bg-surface border-t-2 border-border shadow-lg z-50">
+    <div class="max-w-[760px] mx-auto px-4 py-4 flex flex-col sm:flex-row gap-3">
+        <button type="submit" form="review-form" id="submit-btn" class="btn-primary flex-1 h-[52px] text-card-title">
+            <span class="material-symbols-outlined text-[22px]">check_circle</span>
+            <span th:text="${editing} ? '후기 수정하기' : '후기 저장하기'">후기 저장하기</span>
+        </button>
+        <a th:href="@{/my/courses}" class="btn-secondary flex-1 h-[52px] sm:max-w-[180px]">취소</a>
+    </div>
+</div>
+
 <script th:src="@{/js/review.js}"></script>
 </body>
 </html>
