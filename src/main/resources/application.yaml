@@ -5,6 +5,13 @@ spring:
     name: hidden-travel
   thymeleaf:
     cache: false
+
+  # 개발 중 js/css 를 브라우저가 캐시해 옛 버전을 쓰는 문제 방지.
+  # (템플릿과 js 를 함께 고쳤을 때 강제 새로고침 없이 반영되게 한다)
+  web:
+    resources:
+      cache:
+        period: 0
   devtools:
     livereload:
       enabled: true

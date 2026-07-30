@@ -36,7 +36,11 @@ public class ReviewController {
 
     /** 후기 작성 화면 (이미 쓴 후기가 있으면 내용을 채워 수정 모드로) */
     @GetMapping("/review/new")
-    public String form(@RequestParam Long courseId, HttpSession session, Model model) {
+    public String form(@RequestParam(required = false) Long courseId, HttpSession session, Model model) {
+        if (courseId == null) {
+            // courseId 없이 직접 접근 → 400 빈 화면 대신 목록으로 보낸다
+            return "redirect:/my/courses";
+        }
         Long userId = currentUserService.current(session).getId();
         SavedCourse course = reviewService.courseForWriting(courseId, userId);
         if (course == null) {
@@ -58,11 +62,14 @@ public class ReviewController {
 
     /** 후기 저장 → 상세(공유 가능한 페이지)로 이동 */
     @PostMapping("/review")
-    public String submit(@RequestParam Long courseId,
+    public String submit(@RequestParam(required = false) Long courseId,
                          @RequestParam(required = false) String content,
                          @RequestParam(name = "photos", required = false) List<MultipartFile> photos,
                          @RequestParam(defaultValue = "false") boolean shared,
                          HttpSession session) {
+        if (courseId == null) {
+            return "redirect:/my/courses";
+        }
         Long userId = currentUserService.current(session).getId();
         Review saved = reviewService.write(userId, courseId, content, photos, shared);
         if (saved == null) {

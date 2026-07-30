@@ -84,8 +84,15 @@
         });
     }
     function updateSummary() {
+        const count = courseItems().length;
         const t = document.getElementById('total-places');
-        if (t) t.textContent = String(courseItems().length);
+        if (t) t.textContent = String(count);
+        // 담긴 곳이 없으면 저장 버튼을 비활성 — 눌러도 아무 일 없는 상태를 만들지 않는다
+        const btn = document.getElementById('save-btn');
+        if (btn) {
+            btn.disabled = count === 0;
+            btn.title = count === 0 ? '코스에 장소를 담아야 저장할 수 있어요' : '';
+        }
     }
     function syncAdded() {
         const names = currentNames();
@@ -159,7 +166,7 @@
         if (!btn || !form) return;
         btn.addEventListener('click', () => {
             const items = courseItems();
-            if (items.length === 0) return; // 빈 코스는 저장하지 않는다(버튼도 비활성 상태)
+            if (items.length === 0) return; // 버튼이 비활성이라 도달하지 않지만 방어
             document.getElementById('f-courseName').value = document.getElementById('course-name-input').value || '나의 코스';
             // 경유지를 순서대로 JSON 직렬화 → 서버가 SavedCourseStop 으로 저장
             document.getElementById('f-itemsJson').value = JSON.stringify(items.map((i) => ({
