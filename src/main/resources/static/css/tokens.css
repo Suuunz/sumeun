@@ -9,6 +9,10 @@
     --surface: #FFFFFF;
     --surface-alt: #F4F1EB;
     --border: #E7E1D7;
+    /* 지도 육지면 — 지도 배경(--surface-alt)보다 살짝 밝아 윤곽만 드러난다 */
+    --map-land: #FAF8F4;
+    /* 지도 시군구 경계선 — 반투명이라 선이 겹쳐도 무거워 보이지 않는다 */
+    --map-stroke: rgba(139, 131, 119, 0.45);
     --text: #2E2B26;
     --text-muted: #8B8377;
     --accent: #D08A5D;
@@ -189,14 +193,18 @@ body {
     display: block;
 }
 .sig-path {
-    fill: var(--surface-alt);
-    stroke: var(--border);
-    stroke-width: 0.5px;
+    /* 육지는 배경과 가깝게 두어 윤곽만 보이게 하고,
+       경계선은 반투명으로 얇게 — 또렷하되 선이 튀지 않도록. */
+    fill: var(--map-land);
+    stroke: var(--map-stroke);
+    stroke-width: 0.75px;
     vector-effect: non-scaling-stroke;
-    transition: fill var(--transition);
+    transition: fill var(--transition), stroke var(--transition);
 }
 .sig-path:hover {
     fill: var(--accent-soft);
+    stroke: var(--accent);
+    stroke-width: 1.25px;
     cursor: pointer;
 }
 .sig-path:focus {
@@ -209,6 +217,8 @@ body {
 }
 .sig-path.selected {
     fill: var(--accent);
+    stroke: var(--accent-hover);
+    stroke-width: 1.25px;
 }
 
 /* --- Card --- */
