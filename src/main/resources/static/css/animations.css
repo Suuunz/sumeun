@@ -26,6 +26,15 @@
     100% { transform: rotate(360deg); }
 }
 
+/* ----- 무작위(룰렛) 버튼: 돌아가는 동안 아이콘 회전 ----- */
+#map-shuffle.is-spinning .material-symbols-outlined {
+    animation: spin 0.7s linear infinite;
+}
+#map-shuffle:disabled {
+    opacity: 0.75;
+    cursor: default;
+}
+
 /* ----- 입력 필드 포커스(회원가입 등) ----- */
 .input-field {
     transition: border-color 0.3s ease;

@@ -220,6 +220,14 @@ body {
     stroke: var(--accent-hover);
     stroke-width: 1.25px;
 }
+/* 룰렛이 훑고 지나가는 순간 — 선택보다 옅어 최종 결과와 구분된다.
+   빠르게 바뀌므로 transition 을 끊어 잔상이 남지 않게 한다. */
+.sig-path.spinning {
+    fill: var(--accent-soft);
+    stroke: var(--accent);
+    stroke-width: 1.5px;
+    transition: none;
+}
 
 /* --- Card --- */
 .card {

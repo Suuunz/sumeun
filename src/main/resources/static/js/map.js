@@ -238,13 +238,91 @@
         });
     }
 
-    /* ---------- 무작위로 한 곳 보기 ----------
+    /* ---------- 무작위로 한 곳 보기 (룰렛) ----------
+       여러 지역을 빠르게 훑다가 점점 느려지며 한 곳에 멈춘다.
        지금은 저평가 지수가 없어 단순 무작위. (지수 도입 시 가중 샘플링으로 교체) */
-    function pickRandom() {
-        const paths = svg.querySelectorAll('.sig-path');
+
+    const SPIN_STEPS = 26;      // 훑고 지나가는 지역 수
+    const SPIN_MIN_MS = 45;     // 가장 빠를 때 간격
+    const SPIN_MAX_MS = 430;    // 마지막 즈음 간격
+    let spinning = false;
+
+    const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+    /** 끝으로 갈수록 느려지는 간격 (ease-out) */
+    function spinDelay(step) {
+        const t = step / SPIN_STEPS;
+        return SPIN_MIN_MS + Math.pow(t, 3) * (SPIN_MAX_MS - SPIN_MIN_MS);
+    }
+
+    /**
+     * 최종 착지 지역. 관광지가 적재된 지역 중에서 고른다
+     * (아무 데나 고르면 패널이 빈 채로 열린다).
+     * 실패하면 null → 호출부가 지도 위 아무 곳으로 대체한다.
+     */
+    async function randomTarget() {
+        try {
+            const res = await fetch('/api/recommend', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ styles: [], mood: '', freeText: '' }),
+            });
+            if (!res.ok) return null;
+            const data = await res.json();
+            return data && data.sigCd ? data.sigCd : null;
+        } catch (e) {
+            return null;
+        }
+    }
+
+    async function pickRandom() {
+        if (spinning) return;
+        const paths = Array.from(svg.querySelectorAll('.sig-path'));
         if (!paths.length) return;
-        const p = paths[Math.floor(Math.random() * paths.length)];
-        selectRegion(p.getAttribute('data-sig-cd'));
+
+        spinning = true;
+        const btn = document.getElementById('map-shuffle');
+        if (btn) {
+            btn.disabled = true;
+            btn.classList.add('is-spinning');
+        }
+
+        // 목적지를 먼저 정해두고 연출을 돌린다(연출 중 네트워크 대기가 없도록)
+        let finalSigCd = await randomTarget();
+        if (!finalSigCd) {
+            finalSigCd = paths[Math.floor(Math.random() * paths.length)].getAttribute('data-sig-cd');
+        }
+
+        // 접근성: 모션을 줄이도록 설정한 사용자에겐 바로 결과만 보여준다
+        const reduceMotion = window.matchMedia
+            && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        if (!reduceMotion) {
+            closePanel();
+            svg.querySelectorAll('.sig-path.selected').forEach((p) => p.classList.remove('selected'));
+
+            let prev = null;
+            for (let i = 0; i < SPIN_STEPS; i++) {
+                if (prev) prev.classList.remove('spinning');
+                // 직전과 같은 곳이 연달아 걸리면 멈춘 것처럼 보인다
+                let next = paths[Math.floor(Math.random() * paths.length)];
+                if (next === prev && paths.length > 1) {
+                    next = paths[(paths.indexOf(next) + 1) % paths.length];
+                }
+                next.classList.add('spinning');
+                prev = next;
+                await sleep(spinDelay(i));
+            }
+            if (prev) prev.classList.remove('spinning');
+        }
+
+        await selectRegion(finalSigCd);
+
+        if (btn) {
+            btn.disabled = false;
+            btn.classList.remove('is-spinning');
+        }
+        spinning = false;
     }
 
     /* ---------- 초기화 ---------- */
