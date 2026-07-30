@@ -22,33 +22,63 @@
         return currentNames().includes(name);
     }
 
-    /* ---------- 코스 항목 DOM 생성 ---------- */
-    function makeCourseItem(name, type, category, sage) {
-        const row = el('div', 'course-item flex items-center gap-3 bg-surface border border-border rounded-lg p-3 mb-3');
-        row.setAttribute('data-name', name);
-        row.setAttribute('data-type', type);
-        row.setAttribute('data-category', category || '');
-        row.setAttribute('data-sage', sage ? 'true' : 'false');
+    /* ---------- 코스 항목 DOM 생성 ----------
+       o: {name, type, category, sage, id, image, addr}
+       id 가 있는 관광지는 후보 카드와 동일하게 사진과 [자세히]를 제공한다. */
+    function makeCourseItem(o) {
+        const row = el('div', 'course-item bg-surface border border-border rounded-lg p-3 mb-3');
+        row.setAttribute('data-name', o.name);
+        row.setAttribute('data-type', o.type);
+        row.setAttribute('data-category', o.category || '');
+        row.setAttribute('data-sage', o.sage ? 'true' : 'false');
+        if (o.id) row.setAttribute('data-id', o.id);
+        if (o.image) row.setAttribute('data-image', o.image);
+        if (o.addr) row.setAttribute('data-addr', o.addr);
+
+        const top = el('div', 'flex items-center gap-3');
 
         const handle = el('span', 'material-symbols-outlined text-text-muted cursor-grab drag-handle text-[20px]', 'drag_indicator');
         const badge = el('div', 'w-7 h-7 rounded-full bg-accent-soft text-primary flex items-center justify-center font-bold text-sm shrink-0 order-num', '0');
 
+        // 썸네일 (없으면 자리를 차지하지 않는다)
+        let thumb = null;
+        if (o.image) {
+            thumb = el('img', 'w-11 h-11 rounded-lg object-cover border border-border shrink-0 bg-surface-alt');
+            thumb.src = o.image;
+            thumb.alt = o.name;
+            thumb.loading = 'lazy';
+        }
+
         const body = el('div', 'flex-1 min-w-0');
         const head = el('div', 'flex items-center gap-2 flex-wrap');
-        head.appendChild(el('span', 'font-semibold text-text-primary truncate', name));
-        head.appendChild(el('span', 'bg-surface-alt text-text-muted font-caption text-caption px-2 py-0.5 rounded text-[11px]', category || type));
-        if (sage) head.appendChild(el('span', 'badge-sage', '착한가격업소'));
+        head.appendChild(el('span', 'font-semibold text-text-primary truncate', o.name));
+        head.appendChild(el('span', 'bg-surface-alt text-text-muted font-caption text-caption px-2 py-0.5 rounded text-[11px]', o.category || o.type));
+        if (o.sage) head.appendChild(el('span', 'badge-sage', '착한가격업소'));
         body.appendChild(head);
+
+        // 상세는 TourAPI 관광지(id 보유)만 제공
+        if (o.type === 'attraction' && o.id) {
+            const detailBtn = el('button', 'detail-btn mt-1 inline-flex items-center gap-1 font-caption text-caption text-primary hover:underline');
+            detailBtn.type = 'button';
+            detailBtn.appendChild(el('span', 'material-symbols-outlined text-[16px]', 'expand_more'));
+            detailBtn.appendChild(el('span', 'detail-btn__label', '자세히'));
+            body.appendChild(detailBtn);
+        }
 
         const del = el('button', 'del-btn text-text-muted hover:text-error transition-colors p-1');
         del.type = 'button';
         del.setAttribute('aria-label', '삭제');
         del.appendChild(el('span', 'material-symbols-outlined', 'close'));
 
-        row.appendChild(handle);
-        row.appendChild(badge);
-        row.appendChild(body);
-        row.appendChild(del);
+        top.appendChild(handle);
+        top.appendChild(badge);
+        if (thumb) top.appendChild(thumb);
+        top.appendChild(body);
+        top.appendChild(del);
+        row.appendChild(top);
+
+        row.appendChild(el('div', 'item-detail hidden mt-3 pt-3 border-t border-border'));
+
         makeDraggable(row);
         return row;
     }
@@ -57,10 +87,15 @@
     function addFromCard(card) {
         const name = card.getAttribute('data-name');
         if (!name || inCourse(name)) return;
-        const type = card.getAttribute('data-type');
-        const category = card.getAttribute('data-category');
-        const sage = card.getAttribute('data-sage') === 'true';
-        timeline.insertBefore(makeCourseItem(name, type, category, sage), emptyState);
+        timeline.insertBefore(makeCourseItem({
+            name: name,
+            type: card.getAttribute('data-type'),
+            category: card.getAttribute('data-category'),
+            sage: card.getAttribute('data-sage') === 'true',
+            id: card.getAttribute('data-id'),
+            image: card.getAttribute('data-image'),
+            addr: card.getAttribute('data-addr')
+        }), emptyState);
         refresh();
     }
     function removeItem(name) {
@@ -95,7 +130,10 @@
                 name: i.getAttribute('data-name'),
                 type: i.getAttribute('data-type'),
                 category: i.getAttribute('data-category'),
-                sage: i.getAttribute('data-sage') === 'true'
+                sage: i.getAttribute('data-sage') === 'true',
+                id: i.getAttribute('data-id'),
+                image: i.getAttribute('data-image'),
+                addr: i.getAttribute('data-addr')
             }));
             if (items.length === 0) {
                 sessionStorage.removeItem(DRAFT_KEY);
@@ -114,7 +152,7 @@
             if (!draft || draft.sigCd !== currentSigCd() || !Array.isArray(draft.items)) return;
             draft.items.forEach((it) => {
                 if (!it.name || inCourse(it.name)) return; // 서버가 이미 렌더한 항목과 중복 방지
-                timeline.insertBefore(makeCourseItem(it.name, it.type, it.category, it.sage), emptyState);
+                timeline.insertBefore(makeCourseItem(it), emptyState);
             });
         } catch (e) { /* 손상된 값이면 무시 */ }
     }
@@ -230,9 +268,14 @@
     /* ---------- 관광지 상세 펼치기 ----------
        상세(설명·이용시간·주차 등)는 TourAPI 호출이 들어가므로 미리 받아두지 않고
        펼칠 때 가져온다. 서버가 첫 조회 결과를 DB에 캐시하므로 두 번째부터는 즉시. */
-    function toggleDetail(card) {
-        const panel = card.querySelector('.cand-detail');
-        const btn = card.querySelector('.detail-btn');
+    /**
+     * @param host      .cand-card(후보) 또는 .course-item(담긴 곳)
+     * @param withAddr  주소를 함께 보여줄지. 담긴 곳은 후보 목록을 떠나 있으므로
+     *                  어디였는지 확인할 수 있게 주소를 같이 띄운다.
+     */
+    function toggleDetail(host, withAddr) {
+        const panel = host.querySelector('.item-detail');
+        const btn = host.querySelector('.detail-btn');
         if (!panel || !btn) return;
 
         const icon = btn.querySelector('.material-symbols-outlined');
@@ -253,14 +296,14 @@
         if (panel.dataset.loaded === 'true') return; // 이미 받아둔 내용 재사용
 
         panel.innerHTML = '<p class="font-caption text-caption text-text-muted">불러오는 중…</p>';
-        fetch('/api/attraction/' + card.getAttribute('data-id'))
+        fetch('/api/attraction/' + host.getAttribute('data-id'))
             .then((res) => (res.ok ? res.json() : null))
             .then((d) => {
                 if (!d) {
                     panel.innerHTML = '<p class="font-caption text-caption text-text-muted">정보를 불러오지 못했어요.</p>';
                     return;
                 }
-                panel.innerHTML = renderDetail(d);
+                panel.innerHTML = renderDetail(d, withAddr);
                 panel.dataset.loaded = 'true';
             })
             .catch(() => {
@@ -283,8 +326,16 @@
             '</div>';
     }
 
-    function renderDetail(d) {
+    function renderDetail(d, withAddr) {
         let html = '';
+
+        // 담긴 곳은 후보 목록에서 벗어나 있어 주소를 다시 보여준다
+        if (withAddr && d.addr) {
+            html += '<div class="flex items-start gap-2 mb-2">' +
+                '<span class="material-symbols-outlined text-text-muted text-[16px] mt-0.5">location_on</span>' +
+                '<span class="font-caption text-caption text-text-primary">' + esc(d.addr) + '</span>' +
+                '</div>';
+        }
 
         if (d.pending) {
             html += '<p class="font-caption text-caption text-text-muted mb-2">' +
@@ -319,12 +370,12 @@
         candidateSide = document.getElementById('candidate-side');
         if (!timeline) return;
 
-        // 후보 [+ 담기] / [자세히]
+        // 후보 [+ 담기] / [자세히] — 후보 목록에는 주소가 이미 보이므로 상세엔 넣지 않는다
         if (candidateSide) candidateSide.addEventListener('click', (e) => {
             const detailBtn = e.target.closest('.detail-btn');
             if (detailBtn) {
                 const card = detailBtn.closest('.cand-card');
-                if (card) toggleDetail(card);
+                if (card) toggleDetail(card, false);
                 return;
             }
             const btn = e.target.closest('.add-btn');
@@ -332,8 +383,14 @@
             const card = btn.closest('.cand-card');
             if (card) addFromCard(card);
         });
-        // 코스 [삭제]
+        // 코스 [자세히] / [삭제] — 담긴 곳은 상세에 주소도 함께 보여준다
         timeline.addEventListener('click', (e) => {
+            const detailBtn = e.target.closest('.detail-btn');
+            if (detailBtn) {
+                const item = detailBtn.closest('.course-item');
+                if (item) toggleDetail(item, true);
+                return;
+            }
             const del = e.target.closest('.del-btn');
             if (!del) return;
             const item = del.closest('.course-item');
