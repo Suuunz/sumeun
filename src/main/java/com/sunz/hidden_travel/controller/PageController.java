@@ -31,6 +31,7 @@ public class PageController {
     private final RegionQueryService regionQueryService;
     private final com.sunz.hidden_travel.user.CurrentUserService currentUserService;
     private final com.sunz.hidden_travel.service.SpotlightService spotlightService;
+    private final com.sunz.hidden_travel.service.RegionIntroService regionIntroService;
 
     /** 카카오맵 JavaScript 키 (출발지 역지오코딩용, 없으면 목적지만 길찾기) */
     @Value("${kakao.js.key:}")
@@ -38,11 +39,13 @@ public class PageController {
 
     public PageController(DummyRegionData regionData, RegionQueryService regionQueryService,
                           com.sunz.hidden_travel.user.CurrentUserService currentUserService,
-                          com.sunz.hidden_travel.service.SpotlightService spotlightService) {
+                          com.sunz.hidden_travel.service.SpotlightService spotlightService,
+                          com.sunz.hidden_travel.service.RegionIntroService regionIntroService) {
         this.regionData = regionData;
         this.regionQueryService = regionQueryService;
         this.currentUserService = currentUserService;
         this.spotlightService = spotlightService;
+        this.regionIntroService = regionIntroService;
     }
 
     private RegionSummary toSummary(RegionBundle b) {
@@ -106,6 +109,8 @@ public class PageController {
                 new RegionMetric(String.valueOf(b.specialtyCount()), "특산물 수")
         ));
         model.addAttribute("recommendedCourses", b.recommendedCourses());
+        // "이 지역은 이런 곳이에요" — 적재된 실데이터로 구성 (TourAPI 에 지역 소개글이 없다)
+        model.addAttribute("intro", regionIntroService.intro(cd));
         return "region-detail";
     }
 }

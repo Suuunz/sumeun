@@ -35,11 +35,7 @@ public class RegionQueryService {
     private static final int COURSE_CARD_LIMIT = 3;
     private static final int CANDIDATE_LIMIT = 40;
 
-    /** 착한가격업소 중 비식당(서비스) 업종 제외 키워드 — 화면은 식당 위주로 노출 */
-    private static final List<String> NON_FOOD = List.of(
-            "비요식", "미용", "이용", "이미용", "세탁", "목욕", "숙박", "여관", "안경", "사진",
-            "인쇄", "노래", "학원", "자동차", "수리", "헤어", "네일", "피부", "화장", "서비스"
-    );
+    /* 착한가격업소의 비식당 업종 제외 기준은 GoodPriceCategories 로 옮겼다(여러 곳에서 공용) */
 
     /** TourAPI 여행코스 cat3 코드 → 한글 라벨 */
     private static final Map<String, String> COURSE_THEME = Map.ofEntries(
@@ -230,8 +226,7 @@ public class RegionQueryService {
     }
 
     private boolean isFood(String category) {
-        if (category == null) return true;
-        return NON_FOOD.stream().noneMatch(category::contains);
+        return GoodPriceCategories.isFood(category);
     }
 
     private String priceText(Integer price) {
