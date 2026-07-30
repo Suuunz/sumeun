@@ -35,6 +35,9 @@
         if (o.contentId) row.setAttribute('data-content-id', o.contentId);
         if (o.image) row.setAttribute('data-image', o.image);
         if (o.addr) row.setAttribute('data-addr', o.addr);
+        // 좌표 — 지도에 동선을 그리는 데 쓴다(없는 항목도 있어 조건부)
+        if (o.lat != null && o.lat !== '') row.setAttribute('data-lat', o.lat);
+        if (o.lng != null && o.lng !== '') row.setAttribute('data-lng', o.lng);
 
         const top = el('div', 'flex items-center gap-3');
 
@@ -95,7 +98,9 @@
             sage: card.getAttribute('data-sage') === 'true',
             id: card.getAttribute('data-id'),
             image: card.getAttribute('data-image'),
-            addr: card.getAttribute('data-addr')
+            addr: card.getAttribute('data-addr'),
+            lat: card.getAttribute('data-lat'),
+            lng: card.getAttribute('data-lng')
         }), emptyState);
         refresh();
     }
@@ -113,6 +118,8 @@
         syncAdded();
         toggleEmpty();
         saveDraft();
+        // 지도(course-map.js)가 동선을 다시 그리도록 알린다
+        document.dispatchEvent(new CustomEvent('course:changed'));
     }
 
     /* ---------- 임시 보관 (비로그인 → 로그인 왕복 시 코스 유지) ----------
@@ -135,7 +142,9 @@
                 id: i.getAttribute('data-id'),
                 contentId: i.getAttribute('data-content-id'),
                 image: i.getAttribute('data-image'),
-                addr: i.getAttribute('data-addr')
+                addr: i.getAttribute('data-addr'),
+                lat: i.getAttribute('data-lat'),
+                lng: i.getAttribute('data-lng')
             }));
             if (items.length === 0) {
                 sessionStorage.removeItem(DRAFT_KEY);
@@ -256,11 +265,18 @@
             if (items.length === 0) return; // 버튼이 비활성이라 도달하지 않지만 방어
             document.getElementById('f-courseName').value = document.getElementById('course-name-input').value || '나의 코스';
             // 경유지를 순서대로 JSON 직렬화 → 서버가 SavedCourseStop 으로 저장
-            document.getElementById('f-itemsJson').value = JSON.stringify(items.map((i) => ({
-                name: i.getAttribute('data-name'),
-                type: i.getAttribute('data-type'),
-                sage: i.getAttribute('data-sage') === 'true'
-            })));
+            document.getElementById('f-itemsJson').value = JSON.stringify(items.map((i) => {
+                const lat = parseFloat(i.getAttribute('data-lat'));
+                const lng = parseFloat(i.getAttribute('data-lng'));
+                return {
+                    name: i.getAttribute('data-name'),
+                    type: i.getAttribute('data-type'),
+                    sage: i.getAttribute('data-sage') === 'true',
+                    // 좌표를 함께 저장해야 저장된 코스도 지도에 그릴 수 있다
+                    lat: isNaN(lat) ? null : lat,
+                    lng: isNaN(lng) ? null : lng
+                };
+            }));
             clearDraft();        // 서버에 저장되므로 임시 보관본은 지운다
             btn.disabled = true; // 중복 제출 방지
             form.submit();

@@ -43,6 +43,26 @@
                 <div th:if="${!stopNames.isEmpty()}" class="border-t border-border pt-6 flex flex-wrap gap-2">
                     <span th:each="name : ${stopNames}" class="chip" th:text="${name}">지점</span>
                 </div>
+
+                <!-- 동선 지도 — 저장할 때 함께 담아둔 좌표로 그린다 -->
+                <div th:if="${!mapStops.isEmpty()}" class="border-t border-border pt-6">
+                    <div class="relative h-[260px] rounded-lg overflow-hidden border border-border bg-surface-alt">
+                        <div id="course-map" class="absolute inset-0"></div>
+                        <div th:if="${kakaoJsKey == null or kakaoJsKey.isBlank()}"
+                             class="absolute inset-0 flex flex-col items-center justify-center gap-1 text-center px-4 bg-surface-alt z-10">
+                            <span class="material-symbols-outlined text-text-muted text-[28px]">key_off</span>
+                            <span class="font-caption text-caption text-text-muted">
+                                카카오맵 키를 넣으면 동선이 표시됩니다<br/>
+                                <code class="text-[11px]">config/application-secret.yaml → kakao.js.key</code>
+                            </span>
+                        </div>
+                    </div>
+                    <!-- course-map.js 가 읽어가는 좌표 (course 편집 화면과 같은 선택자) -->
+                    <div id="course-timeline" class="hidden">
+                        <div th:each="s : ${mapStops}" class="course-item"
+                             th:attr="data-name=${s.name},data-lat=${s.lat},data-lng=${s.lng}"></div>
+                    </div>
+                </div>
             </div>
             <!-- Bottom Bar -->
             <div class="bg-sage-bg px-card-padding py-4 border-t border-border flex items-center gap-2">
@@ -85,5 +105,10 @@
         </div>
     </div>
 </main>
+
+<!-- 카카오맵 SDK (키가 있을 때만 로드) -->
+<script th:if="${kakaoJsKey != null and !kakaoJsKey.isBlank()}"
+        th:src="'//dapi.kakao.com/v2/maps/sdk.js?autoload=false&appkey=' + ${kakaoJsKey}"></script>
+<script th:src="@{/js/course-map.js}"></script>
 </body>
 </html>

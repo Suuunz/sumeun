@@ -5,6 +5,7 @@ package com.sunz.hidden_travel.controller.dto;
  * type: attraction / food / goodprice / specialty
  * sage: 착한가격업소 여부(배지 표시), priceText: 착한가격업소 메뉴·가격(그 외 null)
  * image: 대표 이미지 URL (관광지만 보유 — 없으면 null 이고 화면은 아이콘으로 대체)
+ * lat/lng: 지도에 동선을 그리기 위한 좌표 (특산물처럼 장소가 아닌 항목은 null)
  */
 public record CandidateItem(
         String id,
@@ -14,5 +15,7 @@ public record CandidateItem(
         String category,
         boolean sage,
         String priceText,
-        String image
+        String image,
+        Double lat,
+        Double lng
 ) {}

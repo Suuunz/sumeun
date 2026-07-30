@@ -55,7 +55,7 @@ public class SavedCourseService {
             if (p.name() == null || p.name().isBlank()) {
                 continue;
             }
-            course.getStops().add(new SavedCourseStop(order++, p.name(), p.type(), p.sage()));
+            course.getStops().add(new SavedCourseStop(order++, p.name(), p.type(), p.sage(), p.lat(), p.lng()));
             if (p.sage() || GOOD_PRICE_TYPE.equals(p.type())) {
                 goodPrice++;
             }

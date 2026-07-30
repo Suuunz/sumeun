@@ -79,13 +79,39 @@
                 </div>
             </div>
 
+            <!-- 동선 지도: 담은 순서대로 번호 마커와 방향 화살표를 그린다 -->
+            <div class="mb-4">
+                <div id="course-map-wrap" class="relative h-[260px] rounded-lg overflow-hidden border border-border bg-surface-alt">
+                    <div id="course-map" class="absolute inset-0"></div>
+                    <!-- 담긴 곳이 없을 때 -->
+                    <div id="course-map-empty"
+                         class="absolute inset-0 flex flex-col items-center justify-center gap-1 text-center px-4 bg-surface-alt">
+                        <span class="material-symbols-outlined text-text-muted text-[28px]">map</span>
+                        <span class="font-caption text-caption text-text-muted">장소를 담으면 동선이 여기에 그려져요</span>
+                    </div>
+                    <!-- 카카오 키 미설정 안내 -->
+                    <div th:if="${kakaoJsKey == null or kakaoJsKey.isBlank()}"
+                         class="absolute inset-0 flex flex-col items-center justify-center gap-1 text-center px-4 bg-surface-alt z-10">
+                        <span class="material-symbols-outlined text-text-muted text-[28px]">key_off</span>
+                        <span class="font-caption text-caption text-text-muted">
+                            카카오맵 키를 넣으면 동선이 표시됩니다<br/>
+                            <code class="text-[11px]">config/application-secret.yaml → kakao.js.key</code>
+                        </span>
+                    </div>
+                </div>
+                <p class="font-caption text-caption text-text-muted mt-1.5">
+                    담은 순서대로 이어집니다. 순서를 바꾸면 동선도 함께 바뀌어요.
+                </p>
+            </div>
+
             <div id="course-timeline" class="flex-1 flex flex-col">
                 <!-- 초기 코스 항목(추천 코스에서 담아옴) — 경유지도 TourAPI 콘텐츠라 사진·상세 제공 -->
                 <div th:each="it : ${data.initialItems}"
                      class="course-item bg-surface border border-border rounded-lg p-3 mb-3"
                      th:attr="data-name=${it.name},data-type='course',data-category=${it.type},data-sage=${it.sage},
                               data-id=${it.attractionId},data-content-id=${it.contentId},
-                              data-image=${it.image},data-addr=${it.addr}">
+                              data-image=${it.image},data-addr=${it.addr},
+                              data-lat=${it.lat},data-lng=${it.lng}">
                     <div class="flex items-center gap-3">
                         <span class="material-symbols-outlined text-text-muted cursor-grab drag-handle text-[20px]">drag_indicator</span>
                         <div class="w-7 h-7 rounded-full bg-accent-soft text-primary flex items-center justify-center font-bold text-sm shrink-0 order-num" th:text="${it.order}">1</div>
@@ -128,6 +154,10 @@
     <input type="hidden" name="itemsJson" id="f-itemsJson"/>
 </form>
 
+<!-- 카카오맵 SDK (키가 있을 때만 로드) -->
+<script th:if="${kakaoJsKey != null and !kakaoJsKey.isBlank()}"
+        th:src="'//dapi.kakao.com/v2/maps/sdk.js?autoload=false&appkey=' + ${kakaoJsKey}"></script>
 <script th:src="@{/js/course.js}"></script>
+<script th:src="@{/js/course-map.js}"></script>
 </body>
 </html>

@@ -16,5 +16,7 @@ public record CourseInitItem(
         Long attractionId,
         String contentId,
         String image,
-        String addr
+        String addr,
+        Double lat,
+        Double lng
 ) {}

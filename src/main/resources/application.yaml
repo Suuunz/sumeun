@@ -61,6 +61,15 @@ app:
 
 
 
+# ----- 카카오맵 -----
+# 코스 동선 표시와 길찾기에 쓴다. JavaScript 키는 커밋하지 않는다.
+# ./config/application-secret.yaml 에 아래처럼 넣는다:
+#   kakao:
+#     js:
+#       key: 발급받은_JavaScript_키
+# (developers.kakao.com → 앱 생성 → JavaScript 키.
+#  플랫폼 > Web 에 http://localhost:8080 을 등록해야 지도가 뜬다)
+
 # ----- AI 여행 상담(Gemini) -----
 # 키는 커밋하지 않는다. ./config/application-secret.yaml 에 gemini.api.key 를 넣는다.
 gemini:

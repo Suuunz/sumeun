@@ -27,6 +27,10 @@ public class CourseController {
 
     private static final String DEFAULT_SIG = "47170"; // 안동시
 
+    /** 카카오맵 JavaScript 키 (없으면 지도 자리에 설정 안내를 띄운다) */
+    @org.springframework.beans.factory.annotation.Value("${kakao.js.key:}")
+    private String kakaoJsKey;
+
     private final RegionQueryService regionQueryService;
     private final RegionRepository regionRepository;
     private final SavedCourseService savedCourseService;
@@ -50,6 +54,8 @@ public class CourseController {
         String cd = sigCd != null ? sigCd : DEFAULT_SIG;
         CoursePageData data = regionQueryService.coursePageData(cd, courseId);
         model.addAttribute("data", data);
+        // 지도에 동선을 그리는 데 필요. 키가 없으면 화면이 안내를 띄운다.
+        model.addAttribute("kakaoJsKey", kakaoJsKey);
         return "course";
     }
 
@@ -82,7 +88,10 @@ public class CourseController {
 
         model.addAttribute("course", course);
         model.addAttribute("stopNames", course.getStops().stream().map(SavedCourseStop::getName).toList());
+        // 좌표가 있는 경유지만 지도에 그린다
+        model.addAttribute("mapStops", course.getStops().stream().filter(SavedCourseStop::hasCoord).toList());
         model.addAttribute("regionLabel", regionLabel);
+        model.addAttribute("kakaoJsKey", kakaoJsKey);
         model.addAttribute("recommendations", nextRecommendations());
         return "course-saved";
     }

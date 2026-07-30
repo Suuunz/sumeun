@@ -4,7 +4,7 @@
 <!-- 코스 만들기 왼쪽 후보 카드 (CandidateItem c) -->
 <div th:fragment="candCard(c)"
      class="cand-card bg-surface border border-border rounded-lg p-4 hover:border-outline-variant transition-colors group"
-     th:attr="data-name=${c.name},data-type=${c.type},data-id=${c.id},data-category=${c.category},data-sage=${c.sage},data-image=${c.image},data-addr=${c.desc}">
+     th:attr="data-name=${c.name},data-type=${c.type},data-id=${c.id},data-category=${c.category},data-sage=${c.sage},data-image=${c.image},data-addr=${c.desc},data-lat=${c.lat},data-lng=${c.lng}">
 
     <div class="flex items-center gap-4">
         <!-- 썸네일: 이미지가 있으면 사진, 없으면 유형 아이콘 -->
