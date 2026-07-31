@@ -8,7 +8,10 @@ replay_pid*.log
 *.mv.db
 *.trace.db
 ### 로컬 비밀 설정 (API 키 등, 커밋 금지) ###
-/config/application-secret.yaml
+# 백업본(.bak)·환경별 파일까지 모두 막는다.
+# application-secret.yaml 만 막았다가 .bak 이 커밋될 뻔했다.
+/config/application-secret*
+/config/*.bak
 ### 후기 사진 업로드 (LocalImageStorage) ###
 /uploads/
 ### Figma 반입용 산출물 (figma-export/_build/export.mjs 로 재생성) ###

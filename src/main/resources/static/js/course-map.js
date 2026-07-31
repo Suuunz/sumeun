@@ -11,6 +11,19 @@
     let emptyEl = null;
     // 실제 도로 경로 [[lng,lat], ...]. 있으면 직선 대신 이걸로 선을 그린다.
     let roadPath = null;
+    let animationId = null; // 진행 중인 애니메이션 — 다시 그릴 때 취소한다
+
+    /** 모션을 줄이도록 설정한 사용자에겐 애니메이션을 하지 않는다 */
+    function reduceMotion() {
+        return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    }
+
+    function stopAnimation() {
+        if (animationId !== null) {
+            cancelAnimationFrame(animationId);
+            animationId = null;
+        }
+    }
 
     /* ---------- 코스에서 좌표가 있는 경유지만 뽑는다 ---------- */
     function stops() {
@@ -64,8 +77,119 @@
         });
     }
 
+    /* ---------- 경로 애니메이션 ----------
+       선이 출발지에서 도착지로 그려져 나간 뒤, 화살표 하나가 경로를 따라 반복해 달린다.
+       "어느 방향으로 흐르는 동선인가"를 정지 화면보다 훨씬 빨리 읽게 해준다. */
+
+    const DRAW_MS = 1400;    // 선이 그려지는 시간
+    const RUN_MS = 3200;     // 화살표가 한 바퀴 도는 시간
+
+    /** 각 지점까지의 누적 거리 — 속도를 일정하게 유지하려면 필요하다 */
+    function cumulative(points) {
+        const acc = [0];
+        for (let i = 1; i < points.length; i++) {
+            const dx = points[i].getLng() - points[i - 1].getLng();
+            const dy = points[i].getLat() - points[i - 1].getLat();
+            acc.push(acc[i - 1] + Math.hypot(dx, dy));
+        }
+        return acc;
+    }
+
+    /** 진행률 t(0~1) 위치와 그 지점의 진행 방향 */
+    function at(points, acc, t) {
+        const total = acc[acc.length - 1];
+        if (total === 0) return { pos: points[0], deg: 0 };
+        const target = total * Math.min(Math.max(t, 0), 1);
+
+        let i = 1;
+        while (i < acc.length - 1 && acc[i] < target) i++;
+        const segLen = acc[i] - acc[i - 1] || 1;
+        const r = (target - acc[i - 1]) / segLen;
+
+        const a = points[i - 1];
+        const b = points[i];
+        const lat = a.getLat() + (b.getLat() - a.getLat()) * r;
+        const lng = a.getLng() + (b.getLng() - a.getLng()) * r;
+        const deg = Math.atan2(b.getLat() - a.getLat(), b.getLng() - a.getLng()) * 180 / Math.PI;
+        return { pos: new kakao.maps.LatLng(lat, lng), deg: deg, index: i };
+    }
+
+    /**
+     * 경로를 따라 달리는 화살표.
+     * 진행 방향에 맞춰 회전시켜야 하므로 문자열이 아니라 DOM 으로 만든다
+     * (문자열로 주면 나중에 내부 요소를 찾아 돌릴 수 없다).
+     */
+    function runnerOverlay() {
+        const badge = document.createElement('div');
+        badge.className = 'course-runner';
+        badge.style.cssText =
+            'display:flex;align-items:center;justify-content:center;width:24px;height:24px;' +
+            'border-radius:50%;background:#D08A5D;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.35)';
+
+        const arrow = document.createElement('div');
+        arrow.style.cssText = 'color:#fff;font-size:12px;line-height:1';
+        arrow.textContent = '➤';
+        badge.appendChild(arrow);
+
+        const overlay = new kakao.maps.CustomOverlay({
+            position: new kakao.maps.LatLng(0, 0),
+            yAnchor: 0.5,
+            zIndex: 5,
+            content: badge,
+        });
+        overlay.arrowEl = arrow;   // 회전시킬 대상을 들고 다닌다
+        return overlay;
+    }
+
+    /**
+     * @param casing 흰 테두리선
+     * @param line   색선
+     * @param points 전체 경로 좌표
+     */
+    function animate(casing, line, points) {
+        stopAnimation();
+        if (points.length < 2) return;
+
+        const acc = cumulative(points);
+        const runner = runnerOverlay();
+        let runnerAdded = false;
+        const start = performance.now();
+
+        function frame(now) {
+            const elapsed = now - start;
+
+            if (elapsed < DRAW_MS) {
+                // 1단계: 선이 그려져 나간다
+                const t = elapsed / DRAW_MS;
+                const cut = at(points, acc, t);
+                const partial = points.slice(0, Math.max(2, (cut.index || 1) + 1));
+                partial[partial.length - 1] = cut.pos;
+                casing.setPath(partial);
+                line.setPath(partial);
+            } else {
+                // 2단계: 전체 선을 유지한 채 화살표가 경로를 반복해 달린다
+                casing.setPath(points);
+                line.setPath(points);
+                if (!runnerAdded) {
+                    runner.setMap(map);
+                    overlays.push(runner);
+                    runnerAdded = true;
+                }
+                const t = ((elapsed - DRAW_MS) % RUN_MS) / RUN_MS;
+                const p = at(points, acc, t);
+                runner.setPosition(p.pos);
+                if (runner.arrowEl) {
+                    runner.arrowEl.style.transform = 'rotate(' + (-p.deg) + 'deg)';
+                }
+            }
+            animationId = requestAnimationFrame(frame);
+        }
+        animationId = requestAnimationFrame(frame);
+    }
+
     function render() {
         if (!map) return;
+        stopAnimation();
         clearOverlays();
 
         const list = stops();
@@ -109,6 +233,11 @@
                 const arrow = arrowOverlay(positions[i], positions[i + 1]);
                 arrow.setMap(map);
                 overlays.push(arrow);
+            }
+
+            // 선이 그려져 나가고 화살표가 경로를 따라 달린다
+            if (!reduceMotion()) {
+                animate(casing, line, linePath);
             }
         }
 
