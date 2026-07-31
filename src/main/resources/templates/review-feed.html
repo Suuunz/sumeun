@@ -42,6 +42,8 @@
                     <span class="font-caption text-caption text-primary" th:text="${r.regionLabel}">경상북도 안동시</span>
                     <h2 class="font-card-title text-card-title text-text-primary line-clamp-1" th:text="${r.courseTitle}">코스명</h2>
                 </div>
+                <!-- 어떤 성향의 사람이 다녀왔는지 -->
+                <span th:if="${r.mbti != null}" th:replace="~{fragments/brand :: mbtiBadge(${r.mbti})}"></span>
                 <p class="font-body-main text-caption text-text-muted line-clamp-3 flex-1" th:text="${r.excerpt}">후기 요약</p>
                 <div class="flex items-center justify-between border-t border-border pt-3 font-caption text-caption text-text-muted">
                     <span class="flex items-center gap-1">

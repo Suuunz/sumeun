@@ -2,6 +2,47 @@
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <body>
 <!--
+    여행 MBTI 뱃지.
+    사용: <span th:replace="~{fragments/brand :: mbtiBadge(${type})}"></span>
+    type 이 null 이면 아무것도 그리지 않는다(검사 전 사용자).
+-->
+<span th:fragment="mbtiBadge(type)" th:if="${type != null}"
+      class="mbti-badge" th:title="${type.tagline}">
+    <span th:text="${type.emoji}">🎈</span>
+    <span class="mbti-badge__code" th:text="${type.code}">ENFP</span>
+    <span class="mbti-badge__label" th:text="${type.label}">유형</span>
+    <style>
+        .mbti-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 10px 3px 8px;
+            background: var(--accent-soft);
+            border: 1px solid var(--accent);
+            border-radius: var(--radius-chip);
+            font-size: var(--fs-caption);
+            line-height: 1.6;
+            white-space: nowrap;
+            max-width: 100%;
+        }
+        .mbti-badge__code {
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            color: var(--accent-hover);
+        }
+        .mbti-badge__label {
+            color: var(--text-muted);
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        /* 좁은 곳에서는 별명을 숨기고 코드만 남긴다 */
+        @media (max-width: 480px) {
+            .mbti-badge__label { display: none; }
+        }
+    </style>
+</span>
+
+<!--
     숨은여행 로고 마크 — 고양이 발자국 + 강아지 발자국 한 짝씩.
     두 발자국이 오른쪽 위로 걸어가는 배치로 '여행(이동)'을 나타낸다.
     색은 디자인 토큰을 그대로 쓴다: 고양이=세이지, 강아지=액센트.

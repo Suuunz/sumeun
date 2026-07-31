@@ -108,8 +108,12 @@ public class ReviewService {
         List<ReviewCard> cards = new ArrayList<>();
         for (Review r : reviewRepository.findBySharedTrueOrderByCreatedAtDesc()) {
             SavedCourse course = savedCourseRepository.findById(r.getSavedCourseId()).orElse(null);
+            AppUser author = appUserRepository.findById(r.getUserId()).orElse(null);
             cards.add(new ReviewCard(
-                    r.getId(), nickname(r.getUserId()), r.getSigCd(), regionLabel(r.getSigCd()),
+                    r.getId(),
+                    author != null ? author.getNickname() : "여행자",
+                    author != null ? author.mbtiType() : null,
+                    r.getSigCd(), regionLabel(r.getSigCd()),
                     course != null ? course.getTitle() : "삭제된 코스",
                     r.coverPhoto(), r.getPhotoPaths().size(),
                     excerpt(r.getContent()), format(r.getCreatedAt())));
@@ -132,10 +136,12 @@ public class ReviewService {
             return null;
         }
         SavedCourse course = savedCourseRepository.findById(r.getSavedCourseId()).orElse(null);
+        AppUser author = appUserRepository.findById(r.getUserId()).orElse(null);
         return new ReviewDetail(
                 r.getId(),
                 r.getSavedCourseId(),
-                nickname(r.getUserId()),
+                author != null ? author.getNickname() : "여행자",
+                author != null ? author.mbtiType() : null,
                 r.getSigCd(),
                 regionLabel(r.getSigCd()),
                 course != null ? course.getTitle() : "삭제된 코스",
@@ -175,9 +181,7 @@ public class ReviewService {
         return region != null ? region.getProvince() + " " + region.getName() : "";
     }
 
-    private String nickname(Long userId) {
-        return appUserRepository.findById(userId).map(AppUser::getNickname).orElse("여행자");
-    }
+    /* 작성자 닉네임·MBTI 는 AppUser 를 직접 읽어 함께 담는다 (호출부 참고) */
 
     private String format(LocalDateTime at) {
         return at != null ? at.format(DATE) : "";

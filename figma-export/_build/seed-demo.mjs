@@ -37,6 +37,14 @@ await req("/profile", { method: "POST", body: (() => {
     return fd;
 })() });
 
+/* 여행 MBTI — 프로필·후기 뱃지가 보이도록 검사까지 마친다 */
+const mbti = await (await req("/api/mbti/result", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    // Q1~4 즉흥 / Q5~6 직관 / Q7~9 감정 / Q10~12 내향  → INFP
+    body: JSON.stringify({ answers: [1, 1, 1, 2, 2, 2, 1, 1, 1, 2, 2, 2] }),
+})).json();
+console.log("여행 MBTI:", mbti.code, mbti.label);
+
 /* 코스 — 안동, 좌표 있는 실제 관광지 3곳 */
 token = await csrf("/course?sigCd=47170");
 const stops = [

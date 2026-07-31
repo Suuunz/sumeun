@@ -32,6 +32,13 @@
         <div class="min-w-0 flex-1">
             <h2 class="font-section-title text-section-title text-text-primary truncate" th:text="${user.nickname}">닉네임</h2>
             <p class="font-caption text-caption text-text-muted truncate" th:text="${user.email}">email@example.com</p>
+            <!-- 여행 MBTI -->
+            <div class="mt-2 flex items-center gap-2 flex-wrap">
+                <span th:replace="~{fragments/brand :: mbtiBadge(${user.mbtiType()})}"></span>
+                <a th:href="@{/onboarding}"
+                   class="font-caption text-caption text-text-muted hover:text-primary transition-colors"
+                   th:text="${user.mbtiType() != null} ? '다시 검사' : '여행 MBTI 검사하기 →'">여행 MBTI 검사하기 →</a>
+            </div>
             <p th:if="${user.bio != null and !user.bio.isBlank()}"
                class="font-body-main text-body-main text-text-primary mt-2" th:text="${user.bio}">소개</p>
         </div>

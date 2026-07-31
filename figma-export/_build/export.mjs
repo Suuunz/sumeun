@@ -82,17 +82,29 @@ await write("01-login.html", await page("/"));
 await write("02-login-error.html", await page("/?error"));
 await write("03-signup.html", await page("/signup"));
 
+/* 온보딩 = 여행 MBTI 검사. 시작 → 문항 → 결과 세 상태를 각각 뽑는다.
+   화면 전환이 JS 라 여기서 클래스를 직접 조작해 각 상태를 만든다. */
 const onboarding = await page("/onboarding");
-await write("04-onboarding-step1.html", onboarding);
-await write("05-onboarding-step2.html", onboarding
-    .replace('class="step-container step-visible', 'class="step-container step-hidden')
-    .replace('class="step-container step-hidden w-full flex flex-col gap-8" id="step-2"',
-             'class="step-container step-visible w-full flex flex-col gap-8" id="step-2"')
-    .replace('id="progress-2"', 'id="progress-2" style="background:var(--accent)"'));
+await write("04-mbti-intro.html", onboarding);
 
-await write("06-map-logged-out.html", await page("/map"));
-await write("07-course-logged-out.html", await page("/course?sigCd=47170"));
-await write("08-review-feed.html", await page("/reviews"));
+// 문항 화면: 시작 숨기고 퀴즈 표시
+await write("05-mbti-question.html", onboarding
+    .replace('id="mbti-intro" class="flex-1', 'id="mbti-intro" class="hidden flex-1')
+    .replace('id="mbti-quiz" class="hidden flex-1', 'id="mbti-quiz" class="flex flex-1'));
+
+// 결과 화면: 결과 섹션만 표시 (INFP 예시로 채운다)
+await write("06-mbti-result.html", onboarding
+    .replace('id="mbti-intro" class="flex-1', 'id="mbti-intro" class="hidden flex-1')
+    .replace('id="mbti-result" class="hidden flex-1', 'id="mbti-result" class="flex flex-1')
+    .replace('>🎈<', '>🌙<')
+    .replace('>ENFP<', '>INFP<')
+    .replace('>우연을 사랑하는 방랑자<', '>마음에 담는 몽상가<')
+    .replace('>계획에 없던 발견을 반기는 타입<', '>여운을 오래 간직하는 타입<')
+    .replace('>추천 성향<', '>고요한 자연, 오래된 골목, 혼자 걷기 좋은 길<'));
+
+await write("07-map-logged-out.html", await page("/map"));
+await write("08-course-logged-out.html", await page("/course?sigCd=47170"));
+await write("09-review-feed.html", await page("/reviews"));
 
 /* ---------- 로그인 ---------- */
 const token = await csrf("/");
@@ -108,18 +120,18 @@ if (login.status !== 302 || !(login.headers.get("location") || "").includes("/ma
 console.log("\n[로그인: " + DEMO.email + "]");
 
 const map = await page("/map");
-await write("09-map.html", map);
-await write("10-map-ai-modal.html", unhide(map, 'id="recommend-modal"'));
+await write("10-map.html", map);
+await write("11-map-ai-modal.html", unhide(map, 'id="recommend-modal"'));
 
-await write("11-region-panel.html", await page("/region/panel"));
-await write("12-region-detail.html", await page("/region?sigCd=47170"));
-await write("13-course-empty.html", await page("/course?sigCd=47170"));
+await write("12-region-panel.html", await page("/region/panel"));
+await write("13-region-detail.html", await page("/region?sigCd=47170"));
+await write("14-course-empty.html", await page("/course?sigCd=47170"));
 // 추천 코스를 담아온 상태 — 경유지가 서버에서 렌더된다
-await write("14-course-with-stops.html", await page("/course?sigCd=46110&courseId=385"));
+await write("15-course-with-stops.html", await page("/course?sigCd=46110&courseId=385"));
 
 /* 내 코스 → 후기 → 코스 id 역추적 */
 const myCourses = await page("/my/courses");
-await write("15-my-courses.html", myCourses);
+await write("16-my-courses.html", myCourses);
 
 const reviewId = (myCourses.match(/href="\/review\/(\d+)"/) || [])[1];
 let courseId = (myCourses.match(/href="\/review\/new\?courseId=(\d+)"/) || [])[1];
@@ -129,17 +141,17 @@ if (!courseId && reviewId) {
 }
 
 if (courseId) {
-    await write("16-course-saved.html", await page(`/course/saved?courseId=${courseId}`));
-    await write("18-review-form.html", await page(`/review/new?courseId=${courseId}`));
+    await write("17-course-saved.html", await page(`/course/saved?courseId=${courseId}`));
+    await write("19-review-form.html", await page(`/review/new?courseId=${courseId}`));
 } else {
     console.warn("  ! 코스 id 를 찾지 못해 16/18 을 건너뜁니다.");
 }
 if (reviewId) {
-    await write("17-review-detail.html", await page(`/review/${reviewId}`));
+    await write("18-review-detail.html", await page(`/review/${reviewId}`));
 }
 
-await write("19-profile.html", await page("/profile"));
-await write("20-chat.html", await page("/chat"));
+await write("20-profile.html", await page("/profile"));
+await write("21-chat.html", await page("/chat"));
 
 /* ---------- 빈 상태 (새 계정) ---------- */
 console.log("\n[빈 상태]");
@@ -152,6 +164,6 @@ await req("/signup", {
         email: `empty${Date.now()}@sumeun.kr`, password: "sumeun1234",
         confirmPassword: "sumeun1234", nickname: "새 여행자", _csrf: t2 }),
 });
-await write("21-my-courses-empty.html", await page("/my/courses"));
+await write("22-my-courses-empty.html", await page("/my/courses"));
 
 console.log("\n→", OUT);

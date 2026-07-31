@@ -69,11 +69,7 @@ public class PageController {
 
     /* 회원가입 화면은 AuthController 가 담당한다(가입 처리와 같은 곳에 두기 위해) */
 
-    /** 온보딩 (헤더/푸터 숨김) */
-    @GetMapping("/onboarding")
-    public String onboarding() {
-        return "onboarding";
-    }
+    /* 온보딩(여행 MBTI 검사)은 OnboardingController 가 담당한다 */
 
     /** 메인 탐색(지도) — 헤더/푸터 프래그먼트 사용 */
     @GetMapping("/map")

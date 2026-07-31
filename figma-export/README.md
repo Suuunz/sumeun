@@ -1,6 +1,6 @@
 # figma-export — Figma 반입용 자체 완결형 HTML
 
-현재 화면 21종(14화면 + 상태 변형)을 **스타일이 포함된 단일 HTML 파일**로 뽑은 것입니다.
+현재 화면 22종(14화면 + 상태 변형)을 **스타일이 포함된 단일 HTML 파일**로 뽑은 것입니다.
 서버·인터넷 없이 파일 하나로 렌더링되며, Figma `html.to.design` 플러그인의
 **"HTML 코드 붙여넣기"** 모드에 그대로 넣으면 됩니다.
 
@@ -23,28 +23,29 @@ Thymeleaf가 DB 데이터로 렌더링한 **최종 HTML**을 담고 있습니다
 | `01-login.html` | 로그인 |
 | `02-login-error.html` | 로그인 — 인증 실패 |
 | `03-signup.html` | 회원가입 |
-| `04-onboarding-step1.html` | 온보딩 1단계 |
-| `05-onboarding-step2.html` | 온보딩 2단계 |
-| `06-map-logged-out.html` | 지도 — 비로그인 헤더 |
-| `07-course-logged-out.html` | 코스 만들기 — "로그인하고 저장" |
-| `08-review-feed.html` | 후기 둘러보기 |
+| `04-mbti-intro.html` | **여행 MBTI — 시작** |
+| `05-mbti-question.html` | **여행 MBTI — 문항** |
+| `06-mbti-result.html` | **여행 MBTI — 결과** |
+| `07-map-logged-out.html` | 지도 — 비로그인 헤더 |
+| `08-course-logged-out.html` | 코스 만들기 — "로그인하고 저장" |
+| `09-review-feed.html` | 후기 둘러보기 (MBTI 뱃지) |
 
 ### 로그인 (demo@sumeun.kr)
 | 파일 | 화면 |
 |---|---|
-| `09-map.html` | 지도 — 오늘의 숨은 여행지 카드 |
-| `10-map-ai-modal.html` | 지도 — AI 추천 모달 열림 |
-| `11-region-panel.html` | 지역 패널 (실데이터) |
-| `12-region-detail.html` | 지역 상세 — 안동시 |
-| `13-course-empty.html` | 코스 만들기 — 담기 전 |
-| `14-course-with-stops.html` | 코스 만들기 — 추천 코스 담아온 상태 (목포) |
-| `15-my-courses.html` | 내 코스 — 코스 있음 |
-| `16-course-saved.html` | 저장 완료 — 동선 지도·거리·시간 |
-| `17-review-detail.html` | 후기 상세 (공유 대상) |
-| `18-review-form.html` | 후기 작성 |
-| `19-profile.html` | 프로필 |
-| `20-chat.html` | AI 여행 상담 |
-| `21-my-courses-empty.html` | 내 코스 — **빈 상태** |
+| `10-map.html` | 지도 — 오늘의 숨은 여행지 카드 |
+| `11-map-ai-modal.html` | 지도 — AI 추천 모달 열림 |
+| `12-region-panel.html` | 지역 패널 (실데이터) |
+| `13-region-detail.html` | 지역 상세 — 안동시 |
+| `14-course-empty.html` | 코스 만들기 — 담기 전 |
+| `15-course-with-stops.html` | 코스 만들기 — 추천 코스 담아온 상태 (목포) |
+| `16-my-courses.html` | 내 코스 — 코스 있음 |
+| `17-course-saved.html` | 저장 완료 — 동선 지도·거리·시간 |
+| `18-review-detail.html` | 후기 상세 (MBTI 뱃지, 공유 대상) |
+| `19-review-form.html` | 후기 작성 |
+| `20-profile.html` | 프로필 (MBTI 뱃지) |
+| `21-chat.html` | AI 여행 상담 |
+| `22-my-courses-empty.html` | 내 코스 — **빈 상태** |
 
 ## 알려진 한계 (설계상 불가피)
 
@@ -52,11 +53,12 @@ Thymeleaf가 DB 데이터로 렌더링한 **최종 HTML**을 담고 있습니다
 
 | 화면 | 비어 있는 것 | 대안 |
 |---|---|---|
-| `09` `10` 지도 | 시군구 SVG 지도 | 크롬 스크린샷 PNG로 대체 |
-| `09` `10` 지도 | 우측 지역 패널 내용 | **`11-region-panel.html` 사용** (서버 렌더, 실데이터) |
-| `13` `14` 코스 | 동선 지도, 담기로 추가되는 항목 | `14`에 서버 렌더된 초기 경유지는 있음 |
-| `16` 저장완료 | 동선 지도 | 거리·시간 텍스트는 있음 |
-| `20` 챗봇 | 대화 말풍선 | 첫 진입 화면(예시 질문)만 |
+| `10` `11` 지도 | 시군구 SVG 지도 | 크롬 스크린샷 PNG로 대체 |
+| `10` `11` 지도 | 우측 지역 패널 내용 | **`12-region-panel.html` 사용** (서버 렌더, 실데이터) |
+| `14` `15` 코스 | 동선 지도, 담기로 추가되는 항목 | `15`에 서버 렌더된 초기 경유지는 있음 |
+| `17` 저장완료 | 동선 지도 | 거리·시간 텍스트는 있음 |
+| `21` 챗봇 | 대화 말풍선 | 첫 진입 화면(예시 질문)만 |
+| `05` `06` MBTI | — | 문항·결과 상태를 클래스 조작으로 만들어 담았음 |
 
 폰트는 외부 CDN 링크로 남아 있습니다(Pretendard, Gowun Batang, Material Symbols).
 인터넷이 되면 정상 표시되고, 안 되면 시스템 폰트로 대체됩니다.
@@ -66,7 +68,7 @@ Thymeleaf가 DB 데이터로 렌더링한 **최종 HTML**을 담고 있습니다
 1. Figma에서 `html.to.design` 플러그인 실행
 2. **"HTML" / "Paste code"** 탭 선택
 3. 파일을 텍스트 에디터로 열어 **전체 복사 → 붙여넣기 → Import**
-4. 21개 반복
+4. 22개 반복
 5. 반입 후: 최상위 프레임 이름을 파일명대로 정리, 지도 영역을 PNG로 교체
 
 ## 다시 생성하는 법

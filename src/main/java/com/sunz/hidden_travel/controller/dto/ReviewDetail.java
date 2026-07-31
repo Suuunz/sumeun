@@ -10,6 +10,7 @@ public record ReviewDetail(
         Long reviewId,
         Long courseId,
         String nickname,
+        com.sunz.hidden_travel.mbti.TravelMbtiType mbti,
         String sigCd,
         String regionLabel,
         String courseTitle,

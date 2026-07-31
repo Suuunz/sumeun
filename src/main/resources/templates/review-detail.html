@@ -19,12 +19,14 @@
         <a th:href="@{/region(sigCd=${review.sigCd})}"
            class="font-caption text-caption text-primary hover:underline" th:text="${review.regionLabel}">경상북도 안동시</a>
         <h1 class="font-display-title text-display-title text-text-primary mt-2 mb-3" th:text="${review.courseTitle}">코스명</h1>
-        <div class="flex items-center gap-2 font-caption text-caption text-text-muted">
+        <div class="flex items-center gap-2 font-caption text-caption text-text-muted flex-wrap">
             <span class="material-symbols-outlined text-[18px]">person</span>
             <span th:text="${review.nickname}">여행자</span>
             <span>·</span>
             <span th:text="${review.createdAt}">2026.07.30</span>
             <span th:if="${!review.shared}" class="chip">비공개</span>
+            <!-- 어떤 성향의 사람이 쓴 후기인지 -->
+            <span th:if="${review.mbti != null}" th:replace="~{fragments/brand :: mbtiBadge(${review.mbti})}"></span>
         </div>
     </section>
 

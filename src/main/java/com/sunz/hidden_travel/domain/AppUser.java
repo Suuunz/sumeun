@@ -50,6 +50,13 @@ public class AppUser {
     @Column(name = "profile_image")
     private String profileImage;
 
+    /**
+     * 여행 MBTI 4글자 (예: "ENFP"). 온보딩 검사로 정해지며 다시 할 수 있다.
+     * 검사 전이면 null — 프로필·후기에서 뱃지를 숨긴다.
+     */
+    @Column(name = "travel_mbti", length = 4)
+    private String travelMbti;
+
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
@@ -62,5 +69,10 @@ public class AppUser {
     /** 프로필 사진이 없으면 화면에서 이니셜 아바타를 쓴다 */
     public String initial() {
         return (nickname == null || nickname.isBlank()) ? "?" : nickname.substring(0, 1);
+    }
+
+    /** 여행 MBTI 유형 (검사 전이면 null) */
+    public com.sunz.hidden_travel.mbti.TravelMbtiType mbtiType() {
+        return com.sunz.hidden_travel.mbti.TravelMbtiType.of(travelMbti);
     }
 }

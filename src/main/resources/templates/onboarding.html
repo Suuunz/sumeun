@@ -1,66 +1,145 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/layout :: head('Sumeun · 온보딩')}"></head>
-<body class="bg-background text-text-primary min-h-screen flex flex-col items-center justify-center font-body-main text-body-main p-4 md:p-section-gap antialiased">
-<main class="w-full max-w-[640px] mx-auto flex flex-col bg-background">
-    <!-- Progress Bar -->
-    <div aria-label="Progress" class="w-full flex gap-2 mb-12">
-        <div class="h-1 flex-1 bg-primary-container rounded-full transition-colors duration-300" id="progress-1"></div>
-        <div class="h-1 flex-1 bg-border rounded-full transition-colors duration-300" id="progress-2"></div>
-    </div>
-    <!-- Forms Container -->
-    <div class="relative w-full min-h-[400px]">
-        <!-- Step 1 -->
-        <div class="step-container step-visible w-full flex flex-col gap-8" id="step-1">
-            <h1 class="font-display-title-mobile text-display-title-mobile md:font-display-title md:text-display-title text-center text-text-primary">어떤 여행지가 좋으세요?</h1>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <button class="option-card rounded-xl p-card-padding flex flex-col items-start text-left focus:outline-none focus:ring-2 focus:ring-primary-container" onclick="selectCard(1, this)">
-                    <span class="material-symbols-outlined text-[32px] text-primary mb-4">public</span>
-                    <div class="absolute top-4 right-4 check-icon">
-                        <span class="material-symbols-outlined font-bold" style="font-variation-settings: 'wght' 600;">check_circle</span>
-                    </div>
-                    <h2 class="font-card-title text-card-title text-text-primary mb-2">이름난 곳이 좋아요</h2>
-                    <p class="font-caption text-caption text-text-muted">검증된 관광지 위주로 추천</p>
-                </button>
-                <button class="option-card rounded-xl p-card-padding flex flex-col items-start text-left focus:outline-none focus:ring-2 focus:ring-primary-container" onclick="selectCard(1, this)">
-                    <span class="material-symbols-outlined text-[32px] text-primary mb-4">explore</span>
-                    <div class="absolute top-4 right-4 check-icon">
-                        <span class="material-symbols-outlined font-bold" style="font-variation-settings: 'wght' 600;">check_circle</span>
-                    </div>
-                    <h2 class="font-card-title text-card-title text-text-primary mb-2">잘 안 알려진 곳이 좋아요</h2>
-                    <p class="font-caption text-caption text-text-muted">사람 적고 새로운 곳 위주로 추천</p>
+<html class="light" lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Sumeun · 여행 MBTI')}"></head>
+<body class="bg-background text-text-primary font-body-main antialiased min-h-screen flex flex-col">
+
+<main class="flex-1 w-full max-w-[560px] mx-auto px-4 py-8 flex flex-col">
+
+    <!-- ===== 시작 화면 ===== -->
+    <section id="mbti-intro" class="flex-1 flex flex-col items-center justify-center text-center gap-5">
+        <span th:replace="~{fragments/brand :: logoMark(64)}"></span>
+        <div>
+            <h1 class="font-display-title text-display-title text-text-primary mb-2">나의 여행 MBTI</h1>
+            <p class="font-body-main text-body-main text-text-muted leading-relaxed">
+                12개 질문으로 알아보는 나의 여행 성향.<br/>
+                결과에 맞춰 어울리는 여행지를 추천해 드려요.
+            </p>
+        </div>
+        <div class="flex items-center gap-1.5 font-caption text-caption text-text-muted">
+            <span class="material-symbols-outlined text-[16px]">schedule</span>
+            <span>1분이면 끝나요</span>
+        </div>
+        <button type="button" id="mbti-start" class="btn-primary w-full h-[52px] text-card-title mt-2">
+            <span class="material-symbols-outlined text-[22px]">explore</span>
+            검사 시작하기
+        </button>
+        <a th:href="@{/map}" class="font-caption text-caption text-text-muted hover:text-primary transition-colors">
+            나중에 할게요
+        </a>
+    </section>
+
+    <!-- ===== 문항 ===== -->
+    <section id="mbti-quiz" class="hidden flex-1 flex-col">
+        <!-- 진행률 -->
+        <div class="mb-6">
+            <div class="flex items-baseline justify-between mb-2">
+                <span class="font-caption text-caption text-primary font-semibold">
+                    <span id="mbti-current">1</span> / <span th:text="${questions.size()}">12</span>
+                </span>
+                <button type="button" id="mbti-back"
+                        class="font-caption text-caption text-text-muted hover:text-primary transition-colors inline-flex items-center gap-1">
+                    <span class="material-symbols-outlined text-[16px]">arrow_back</span>이전
                 </button>
             </div>
-        </div>
-        <!-- Step 2 -->
-        <div class="step-container step-hidden w-full flex flex-col gap-8" id="step-2">
-            <h1 class="font-display-title-mobile text-display-title-mobile md:font-display-title md:text-display-title text-center text-text-primary">여행지 분위기는요?</h1>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <button class="option-card rounded-xl p-card-padding flex flex-col items-start text-left focus:outline-none focus:ring-2 focus:ring-primary-container" onclick="selectCard(2, this)">
-                    <span class="material-symbols-outlined text-[32px] text-primary mb-4">celebration</span>
-                    <div class="absolute top-4 right-4 check-icon">
-                        <span class="material-symbols-outlined font-bold" style="font-variation-settings: 'wght' 600;">check_circle</span>
-                    </div>
-                    <h2 class="font-card-title text-card-title text-text-primary mb-2">북적이는 곳</h2>
-                    <p class="font-caption text-caption text-text-muted">축제, 시장, 활기 있는 거리</p>
-                </button>
-                <button class="option-card rounded-xl p-card-padding flex flex-col items-start text-left focus:outline-none focus:ring-2 focus:ring-primary-container" onclick="selectCard(2, this)">
-                    <span class="material-symbols-outlined text-[32px] text-primary mb-4">nature</span>
-                    <div class="absolute top-4 right-4 check-icon">
-                        <span class="material-symbols-outlined font-bold" style="font-variation-settings: 'wght' 600;">check_circle</span>
-                    </div>
-                    <h2 class="font-card-title text-card-title text-text-primary mb-2">잔잔한 곳</h2>
-                    <p class="font-caption text-caption text-text-muted">조용한 자연, 한적한 골목</p>
-                </button>
+            <div class="h-2 bg-surface-alt rounded-full overflow-hidden">
+                <div id="mbti-bar" class="h-full bg-primary rounded-full transition-all duration-300" style="width:8%"></div>
             </div>
         </div>
-    </div>
-    <!-- Footer Actions: 건너뛰기 / 시작하기 → /map -->
-    <div class="w-full flex justify-between items-center mt-12 pt-8 border-t border-border">
-        <button class="font-body-main text-body-main text-text-muted hover:text-text-primary transition-colors focus:outline-none focus:underline" onclick="skip()">건너뛰기</button>
-        <button class="h-[44px] px-8 bg-primary-container text-white font-card-title text-card-title rounded flex items-center justify-center transition-all duration-300 hover:bg-accent-hover hover:-translate-y-[2px] disabled:opacity-50 disabled:hover:translate-y-0 disabled:cursor-not-allowed" disabled id="next-btn" onclick="nextStep()">다음</button>
-    </div>
+
+        <!-- 문항 카드 (한 번에 하나만 보인다) -->
+        <div th:each="q, it : ${questions}" class="mbti-q flex-1 flex-col justify-center"
+             th:classappend="${it.index > 0} ? 'hidden' : 'flex'" th:attr="data-index=${it.index}">
+            <p class="font-caption text-caption text-text-muted mb-2"
+               th:text="'Q ' + (${q.number} < 10 ? '0' : '') + ${q.number}">Q 01</p>
+            <h2 class="font-section-title text-section-title text-text-primary leading-snug mb-6"
+                th:text="${q.question}">질문</h2>
+
+            <div class="flex flex-col gap-3">
+                <button type="button" class="mbti-a" data-pick="1" th:text="${q.answer1}">답변 1</button>
+                <button type="button" class="mbti-a" data-pick="2" th:text="${q.answer2}">답변 2</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== 결과 ===== -->
+    <section id="mbti-result" class="hidden flex-1 flex-col items-center justify-center text-center gap-4">
+        <div id="mbti-emoji" class="text-[72px] leading-none">🎈</div>
+        <div>
+            <p id="mbti-code" class="font-caption text-caption text-primary font-semibold tracking-[0.2em] mb-1">ENFP</p>
+            <h1 id="mbti-label" class="font-display-title text-display-title text-text-primary mb-2">우연을 사랑하는 방랑자</h1>
+            <p id="mbti-tagline" class="font-body-main text-body-main text-text-muted">계획에 없던 발견을 반기는 타입</p>
+        </div>
+
+        <div class="w-full bg-surface border-2 border-border rounded-xl p-card-padding shadow-sm text-left">
+            <p class="font-caption text-caption text-text-muted mb-1">이런 여행이 어울려요</p>
+            <p id="mbti-style" class="font-body-main text-body-main text-text-primary">추천 성향</p>
+        </div>
+
+        <!-- 비로그인 안내 -->
+        <div id="mbti-signup-note" class="hidden w-full bg-sage-bg border-2 border-sage rounded-xl p-4 text-left">
+            <p class="font-caption text-caption text-text-primary">
+                가입하면 결과가 프로필에 저장되고, AI 상담이 성향에 맞춰 추천해 드려요.
+            </p>
+        </div>
+
+        <div class="w-full flex flex-col sm:flex-row gap-3 mt-2">
+            <a th:href="@{/map}" class="btn-primary flex-1 h-[52px]">
+                <span class="material-symbols-outlined text-[20px]">map</span>
+                여행지 보러 가기
+            </a>
+            <a th:if="${!loggedIn}" th:href="@{/signup}" class="btn-secondary flex-1 h-[52px]">가입하고 저장</a>
+            <button type="button" id="mbti-retry" class="btn-secondary flex-1 h-[52px]">다시 하기</button>
+        </div>
+    </section>
+
 </main>
+
+<style>
+    /* 선택지 — 크고 둥글게, 누르면 통통 */
+    .mbti-a {
+        width: 100%;
+        min-height: 68px;
+        padding: 16px 20px;
+        background: var(--surface);
+        border: 2px solid var(--border);
+        border-radius: var(--radius-card);
+        font-size: var(--fs-body);
+        line-height: 1.5;
+        text-align: left;
+        color: var(--text);
+        cursor: pointer;
+        transition: transform 150ms ease-out, border-color var(--transition), background var(--transition);
+    }
+    .mbti-a:hover {
+        border-color: var(--accent);
+        background: var(--accent-soft);
+        transform: translateY(-2px);
+    }
+    .mbti-a:active { transform: scale(0.98); }
+    /* 고른 순간 잠깐 강조됐다가 다음 문항으로 넘어간다 */
+    .mbti-a.picked {
+        border-color: var(--accent);
+        background: var(--accent);
+        color: #fff;
+        transform: scale(1.02);
+    }
+    /* 문항이 바뀔 때 살짝 떠오르는 느낌 */
+    .mbti-q:not(.hidden) { animation: mbtiIn 280ms ease-out; }
+    @keyframes mbtiIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+    #mbti-emoji { animation: mbtiPop 500ms ease-out; }
+    @keyframes mbtiPop {
+        0%   { opacity: 0; transform: scale(0.4) rotate(-12deg); }
+        60%  { transform: scale(1.15) rotate(4deg); }
+        100% { opacity: 1; transform: scale(1) rotate(0); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+        .mbti-a, .mbti-q:not(.hidden), #mbti-emoji { transition: none; animation: none; }
+    }
+</style>
+
 <script th:src="@{/js/onboarding.js}"></script>
 </body>
 </html>

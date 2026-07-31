@@ -3,8 +3,10 @@ package com.sunz.hidden_travel.ai;
 import com.sunz.hidden_travel.controller.dto.ChatRecommendation;
 import com.sunz.hidden_travel.controller.dto.ChatRequest;
 import com.sunz.hidden_travel.controller.dto.ChatResponse;
+import com.sunz.hidden_travel.domain.AppUser;
 import com.sunz.hidden_travel.domain.Region;
 import com.sunz.hidden_travel.domain.TravelCourse;
+import com.sunz.hidden_travel.mbti.TravelMbtiType;
 import com.sunz.hidden_travel.repository.AttractionRepository;
 import com.sunz.hidden_travel.repository.RegionRepository;
 import com.sunz.hidden_travel.repository.TravelCourseRepository;
@@ -45,6 +47,7 @@ public class ChatService {
     private final RegionRepository regionRepository;
     private final AttractionRepository attractionRepository;
     private final TravelCourseRepository travelCourseRepository;
+    private final com.sunz.hidden_travel.user.CurrentUserService currentUserService;
     private final ObjectMapper mapper = new ObjectMapper();
 
     /** 카탈로그는 자주 바뀌지 않아 한 번 만들어 재사용한다 */
@@ -53,11 +56,13 @@ public class ChatService {
     public ChatService(GeminiClient gemini,
                        RegionRepository regionRepository,
                        AttractionRepository attractionRepository,
-                       TravelCourseRepository travelCourseRepository) {
+                       TravelCourseRepository travelCourseRepository,
+                       com.sunz.hidden_travel.user.CurrentUserService currentUserService) {
         this.gemini = gemini;
         this.regionRepository = regionRepository;
         this.attractionRepository = attractionRepository;
         this.travelCourseRepository = travelCourseRepository;
+        this.currentUserService = currentUserService;
     }
 
     public boolean isConfigured() {
@@ -88,7 +93,7 @@ public class ChatService {
         }
         history.add(GeminiClient.Turn.user(request.message()));
 
-        String raw = gemini.generate(systemInstruction(), history);
+        String raw = gemini.generate(systemInstruction() + travelerContext(), history);
         if (raw == null) {
             return ChatResponse.error("지금은 답변을 가져오지 못했어요. 잠시 후 다시 시도해 주세요.");
         }
@@ -125,6 +130,26 @@ public class ChatService {
 
                 [데이터]
                 """ + catalog();
+    }
+
+    /**
+     * 로그인 사용자의 여행 MBTI 를 프롬프트에 덧붙인다.
+     * 검사를 안 했거나 비로그인이면 빈 문자열 — 성향 정보 없이 답한다.
+     */
+    private String travelerContext() {
+        AppUser user = currentUserService.current();
+        TravelMbtiType type = user == null ? null : user.mbtiType();
+        if (type == null) {
+            return "";
+        }
+        return """
+
+                [이 사용자의 여행 성향]
+                여행 MBTI: %s (%s) — %s
+                어울리는 여행: %s
+                추천할 때 이 성향을 고려하고, 답변에서 자연스럽게 한 번 언급해라.
+                단, 성향을 이유로 데이터에 없는 곳을 지어내면 안 된다.
+                """.formatted(type.getCode(), type.getLabel(), type.getTagline(), type.getStyle());
     }
 
     /** 지역·코스 목록을 컴팩트한 텍스트로 (한 번 만들어 캐시) */
