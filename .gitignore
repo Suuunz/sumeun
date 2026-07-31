@@ -14,8 +14,13 @@ replay_pid*.log
 /config/*.bak
 ### 후기 사진 업로드 (LocalImageStorage) ###
 /uploads/
-### Figma 반입용 산출물 (figma-export/_build/export.mjs 로 재생성) ###
-/figma-export/
+### Figma 반입용 ###
+# 생성된 HTML 은 커밋하지 않는다(용량이 크고 언제든 재생성 가능).
+# 재생성 스크립트와 README 는 팀 공유를 위해 커밋한다.
+/figma-export/*.html
+/figma-export/_build/node_modules/
+/figma-export/_build/tw.css
+/figma-export/_build/package*.json
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/

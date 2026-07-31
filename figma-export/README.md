@@ -1,0 +1,90 @@
+# figma-export — Figma 반입용 자체 완결형 HTML
+
+현재 화면 21종(14화면 + 상태 변형)을 **스타일이 포함된 단일 HTML 파일**로 뽑은 것입니다.
+서버·인터넷 없이 파일 하나로 렌더링되며, Figma `html.to.design` 플러그인의
+**"HTML 코드 붙여넣기"** 모드에 그대로 넣으면 됩니다.
+
+> 함께 보기: [화면 명세서](../docs/SCREENS.md) · [데이터 제약](../docs/DATA.md) · [디자인 토큰](../docs/DESIGN-TOKENS.md)
+
+## 왜 이 파일들이 필요한가
+
+원본 템플릿은 Tailwind **Play CDN**을 써서, `bg-background` `text-text-primary` 같은
+커스텀 토큰 클래스가 **브라우저 실행 시점에** CSS로 변환됩니다.
+`.html` 원본을 그대로 복사하면 스타일이 하나도 없는 뼈대만 넘어갑니다.
+
+이 파일들은 그 CSS를 Tailwind CLI로 미리 빌드해 `<style>`로 인라인했고,
+Thymeleaf가 DB 데이터로 렌더링한 **최종 HTML**을 담고 있습니다.
+
+## 파일 목록
+
+### 비로그인
+| 파일 | 화면 |
+|---|---|
+| `01-login.html` | 로그인 |
+| `02-login-error.html` | 로그인 — 인증 실패 |
+| `03-signup.html` | 회원가입 |
+| `04-onboarding-step1.html` | 온보딩 1단계 |
+| `05-onboarding-step2.html` | 온보딩 2단계 |
+| `06-map-logged-out.html` | 지도 — 비로그인 헤더 |
+| `07-course-logged-out.html` | 코스 만들기 — "로그인하고 저장" |
+| `08-review-feed.html` | 후기 둘러보기 |
+
+### 로그인 (demo@sumeun.kr)
+| 파일 | 화면 |
+|---|---|
+| `09-map.html` | 지도 — 오늘의 숨은 여행지 카드 |
+| `10-map-ai-modal.html` | 지도 — AI 추천 모달 열림 |
+| `11-region-panel.html` | 지역 패널 (실데이터) |
+| `12-region-detail.html` | 지역 상세 — 안동시 |
+| `13-course-empty.html` | 코스 만들기 — 담기 전 |
+| `14-course-with-stops.html` | 코스 만들기 — 추천 코스 담아온 상태 (목포) |
+| `15-my-courses.html` | 내 코스 — 코스 있음 |
+| `16-course-saved.html` | 저장 완료 — 동선 지도·거리·시간 |
+| `17-review-detail.html` | 후기 상세 (공유 대상) |
+| `18-review-form.html` | 후기 작성 |
+| `19-profile.html` | 프로필 |
+| `20-chat.html` | AI 여행 상담 |
+| `21-my-courses-empty.html` | 내 코스 — **빈 상태** |
+
+## 알려진 한계 (설계상 불가피)
+
+정적 HTML이라 **JS가 그리는 부분은 비어 있습니다.** 리디자인 시 참고하세요.
+
+| 화면 | 비어 있는 것 | 대안 |
+|---|---|---|
+| `09` `10` 지도 | 시군구 SVG 지도 | 크롬 스크린샷 PNG로 대체 |
+| `09` `10` 지도 | 우측 지역 패널 내용 | **`11-region-panel.html` 사용** (서버 렌더, 실데이터) |
+| `13` `14` 코스 | 동선 지도, 담기로 추가되는 항목 | `14`에 서버 렌더된 초기 경유지는 있음 |
+| `16` 저장완료 | 동선 지도 | 거리·시간 텍스트는 있음 |
+| `20` 챗봇 | 대화 말풍선 | 첫 진입 화면(예시 질문)만 |
+
+폰트는 외부 CDN 링크로 남아 있습니다(Pretendard, Gowun Batang, Material Symbols).
+인터넷이 되면 정상 표시되고, 안 되면 시스템 폰트로 대체됩니다.
+
+## Figma 반입 순서
+
+1. Figma에서 `html.to.design` 플러그인 실행
+2. **"HTML" / "Paste code"** 탭 선택
+3. 파일을 텍스트 에디터로 열어 **전체 복사 → 붙여넣기 → Import**
+4. 21개 반복
+5. 반입 후: 최상위 프레임 이름을 파일명대로 정리, 지도 영역을 PNG로 교체
+
+## 다시 생성하는 법
+
+앱을 켠 상태(`localhost:8080`)에서:
+
+```bash
+cd _build
+npm i -D tailwindcss@3 @tailwindcss/forms @tailwindcss/container-queries   # 최초 1회
+npx tailwindcss -c tailwind.config.js -i input.css -o tw.css               # 템플릿 수정 시 필수
+node export.mjs
+```
+
+- `tailwind.config.js` — `fragments/layout.html`의 인라인 config를 옮긴 것.
+  **레이아웃의 토큰 설정을 바꾸면 이 파일도 같이 고쳐야 합니다.**
+- `export.mjs` — 데모 계정으로 로그인해 화면을 수집. 업로드 이미지는 data URI로 인라인.
+
+> ⚠ **`tw.css` 재빌드를 빠뜨리면** 새로 추가한 클래스가 빠져 화면이 깨진 채로 나옵니다.
+
+데모 데이터(계정·코스·후기)가 없으면 로그인 화면들이 실패합니다.
+`seed-demo.mjs`로 먼저 넣어주세요. 계정: `demo@sumeun.kr` / `sumeun1234`
