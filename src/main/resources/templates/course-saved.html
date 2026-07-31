@@ -30,13 +30,16 @@
                         <span class="font-caption text-caption text-text-muted">총 장소</span>
                         <span class="font-card-title text-card-title text-text-primary" th:text="${course.stopCount()} + '곳'">4곳</span>
                     </div>
+                    <!-- 저장된 값이 있으면 바로, 없으면 course-map.js 가 길찾기 결과로 채운다 -->
                     <div class="flex flex-col gap-1">
                         <span class="font-caption text-caption text-text-muted">예상 소요시간</span>
-                        <span class="font-card-title text-card-title text-text-primary">-</span>
+                        <span id="route-duration" class="font-card-title text-card-title text-text-primary"
+                              th:text="${course.durationText() != null ? course.durationText() : '계산 중…'}">-</span>
                     </div>
                     <div class="flex flex-col gap-1">
                         <span class="font-caption text-caption text-text-muted">이동 거리</span>
-                        <span class="font-card-title text-card-title text-text-primary">-</span>
+                        <span id="route-distance" class="font-card-title text-card-title text-text-primary"
+                              th:text="${course.distanceText() != null ? course.distanceText() : '계산 중…'}">-</span>
                     </div>
                 </div>
                 <!-- 경유지 -->
@@ -47,7 +50,8 @@
                 <!-- 동선 지도 — 저장할 때 함께 담아둔 좌표로 그린다 -->
                 <div th:if="${!mapStops.isEmpty()}" class="border-t border-border pt-6">
                     <div class="relative h-[260px] rounded-lg overflow-hidden border border-border bg-surface-alt">
-                        <div id="course-map" class="absolute inset-0"></div>
+                        <!-- data-course-id 가 있으면 course-map.js 가 실제 도로 경로를 가져온다 -->
+                        <div id="course-map" class="absolute inset-0" th:attr="data-course-id=${course.id}"></div>
                         <div th:if="${kakaoJsKey == null or kakaoJsKey.isBlank()}"
                              class="absolute inset-0 flex flex-col items-center justify-center gap-1 text-center px-4 bg-surface-alt z-10">
                             <span class="material-symbols-outlined text-text-muted text-[28px]">key_off</span>
@@ -57,6 +61,9 @@
                             </span>
                         </div>
                     </div>
+                    <p id="route-note" class="font-caption text-caption text-text-muted mt-1.5">
+                        경로를 계산하는 중이에요…
+                    </p>
                     <!-- course-map.js 가 읽어가는 좌표 (course 편집 화면과 같은 선택자) -->
                     <div id="course-timeline" class="hidden">
                         <div th:each="s : ${mapStops}" class="course-item"
